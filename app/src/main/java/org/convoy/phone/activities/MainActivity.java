@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import org.convoy.phone.R;
 import org.convoy.phone.util.BaseActivity;
+import org.convoy.phone.util.StorageUtil;
 
 public class MainActivity extends BaseActivity {
     private static final int REQ_CALL = 1;
@@ -65,6 +66,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void placeCall() {
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_ui_call_press", "pressed=true");
         String number = numberInput.getText().toString().trim();
         if (TextUtils.isEmpty(number)) {
             Toast.makeText(this, R.string.empty_number, Toast.LENGTH_SHORT).show();

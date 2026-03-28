@@ -75,10 +75,7 @@ public abstract class BaseActivity extends Activity {
     }
 
     protected void startManualRecording(String source) {
-        if (!AppSettings.isRecordCallsEnabled(this)) {
-            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_skip", "source=" + source + " reason=disabled");
-            return;
-        }
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_entry", "source=" + source + " enabled=" + AppSettings.isRecordCallsEnabled(this));
         boolean wrote = StorageUtil.writeMarkerFile(this, "start.txt", "call started");
         StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_start", "source=" + source + " wroteStart=" + wrote);
         try {
