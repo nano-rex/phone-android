@@ -18,13 +18,13 @@
     <string name="choose_folder">Choose Folder</string>
     <string name="record_calls">Record calls</string>
     <string name="recording_source">Recording source</string>
-    <string name="source_environment">Environment</string>
-    <string name="source_device">Device</string>
+    <string name="source_environment">Environment mic</string>
+    <string name="source_device">Device voice path</string>
     <string name="dark_mode">Dark mode</string>
     <string name="open_folder_picker">Pick recordings folder</string>
     <string name="folder_not_set">Folder not set</string>
     <string name="folder_set">Folder configured</string>
-    <string name="recording_note">Call recording depends on device and Android restrictions.</string>
+    <string name="recording_note">Device voice path is best-effort only and may be blocked by the phone or Android build. Environment mic records the surroundings instead.</string>
     <string name="permission_required">Required permission denied</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
