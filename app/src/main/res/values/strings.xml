@@ -54,4 +54,6 @@
     <string name="audio_route_unavailable">Audio controls unavailable</string>
     <string name="speaker_off">Speaker off</string>
     <string name="unmute">Unmute</string>
+    <string name="system_blocklist_enabled">System blocklist active</string>
+    <string name="system_blocklist_fallback">Fallback blocklist active</string>
 </resources>

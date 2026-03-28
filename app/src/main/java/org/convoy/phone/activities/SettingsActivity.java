@@ -13,12 +13,14 @@ import org.convoy.phone.R;
 import org.convoy.phone.util.AppSettings;
 import org.convoy.phone.util.BaseActivity;
 import org.convoy.phone.util.DialerIntegration;
+import org.convoy.phone.util.BlockedNumberStore;
 
 public class SettingsActivity extends BaseActivity {
     private static final int REQ_FOLDER = 4;
     private static final int REQ_AUDIO = 5;
     private TextView folderStatus;
     private TextView defaultDialerStatus;
+    private TextView blocklistStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +29,7 @@ public class SettingsActivity extends BaseActivity {
         bindBottomNav(R.id.tab_settings);
         folderStatus = findViewById(R.id.folder_status);
         defaultDialerStatus = findViewById(R.id.default_dialer_status);
+        blocklistStatus = findViewById(R.id.blocklist_status);
 
         Switch darkMode = findViewById(R.id.dark_mode_switch);
         darkMode.setChecked(AppSettings.isDarkMode(this));
@@ -53,12 +56,14 @@ public class SettingsActivity extends BaseActivity {
         findViewById(R.id.request_default_dialer_button).setOnClickListener(v -> startActivityForResult(DialerIntegration.createRoleRequestIntent(this), DialerIntegration.REQ_DEFAULT_DIALER));
         updateFolderStatus();
         updateDialerStatus();
+        updateBlocklistStatus();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         updateDialerStatus();
+        updateBlocklistStatus();
     }
 
     private void openFolderPicker() {
@@ -78,6 +83,7 @@ public class SettingsActivity extends BaseActivity {
         }
         if (requestCode == DialerIntegration.REQ_DEFAULT_DIALER) {
             updateDialerStatus();
+        updateBlocklistStatus();
         }
     }
 
@@ -89,5 +95,11 @@ public class SettingsActivity extends BaseActivity {
         defaultDialerStatus.setText(DialerIntegration.isDefaultDialer(this)
                 ? R.string.default_dialer_enabled
                 : R.string.default_dialer_disabled);
+    }
+
+    private void updateBlocklistStatus() {
+        blocklistStatus.setText(BlockedNumberStore.canUseSystemBlocklist(this)
+                ? R.string.system_blocklist_enabled
+                : R.string.system_blocklist_fallback);
     }
 }
