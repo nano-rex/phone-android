@@ -13,6 +13,9 @@ public final class CallController {
     private static CallAudioState currentAudioState;
     private static ConvoyInCallService inCallService;
     private static boolean activityVisible;
+    private static String lastHandle = "Unknown";
+    private static int lastState = Call.STATE_NEW;
+    private static boolean endedAwaitingClose;
 
     private CallController() {}
 
@@ -35,6 +38,8 @@ public final class CallController {
         }
         currentCall = call;
         if (currentCall != null) {
+            updateCallSnapshot(currentCall);
+            endedAwaitingClose = false;
             currentCall.registerCallback(CALLBACK);
             launchCallUi(context);
         }
@@ -53,6 +58,46 @@ public final class CallController {
         }
         currentCall = null;
         currentAudioState = null;
+        endedAwaitingClose = false;
+        lastState = Call.STATE_NEW;
+        lastHandle = "Unknown";
+    }
+
+    public static void markCallRemoved() {
+        currentCall = null;
+        currentAudioState = null;
+    }
+
+    public static void markEndedAwaitingClose() {
+        endedAwaitingClose = true;
+        lastState = Call.STATE_DISCONNECTED;
+    }
+
+    public static boolean isEndedAwaitingClose() {
+        return endedAwaitingClose;
+    }
+
+    public static void closeEndedCall() {
+        clearCall();
+    }
+
+    public static String getDisplayHandle() {
+        return lastHandle;
+    }
+
+    public static int getDisplayState() {
+        return lastState;
+    }
+
+    private static void updateCallSnapshot(Call call) {
+        String handle = call.getDetails() != null && call.getDetails().getHandle() != null
+                ? call.getDetails().getHandle().getSchemeSpecificPart()
+                : "Unknown";
+        if (handle == null || handle.isEmpty()) {
+            handle = "Unknown";
+        }
+        lastHandle = handle;
+        lastState = call.getState();
     }
 
     public static void setCurrentAudioState(CallAudioState audioState) {
@@ -108,8 +153,9 @@ public final class CallController {
     public static final Call.Callback CALLBACK = new Call.Callback() {
         @Override
         public void onStateChanged(Call call, int state) {
+            updateCallSnapshot(call);
             if (state == Call.STATE_DISCONNECTED) {
-                clearCall();
+                markEndedAwaitingClose();
             }
         }
     };

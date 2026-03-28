@@ -11,7 +11,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import org.convoy.phone.R;
+import org.convoy.phone.util.AppSettings;
 import org.convoy.phone.util.BaseActivity;
+import org.convoy.phone.util.CallRecordingService;
+import org.convoy.phone.util.StorageUtil;
 
 public class MainActivity extends BaseActivity {
     private static final int REQ_CALL = 1;
@@ -74,6 +77,17 @@ public class MainActivity extends BaseActivity {
             requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, REQ_CALL);
             return;
         }
+        maybeStartManualRecording();
         dialNumber(number);
+    }
+
+    private void maybeStartManualRecording() {
+        if (!AppSettings.isRecordCallsEnabled(this)) {
+            return;
+        }
+        StorageUtil.writeMarkerFile(this, "start.txt", "call started");
+        Intent recordingIntent = new Intent(this, CallRecordingService.class);
+        recordingIntent.setAction(CallRecordingService.ACTION_START);
+        startForegroundService(recordingIntent);
     }
 }

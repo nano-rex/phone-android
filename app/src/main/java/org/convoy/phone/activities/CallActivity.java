@@ -1,5 +1,6 @@
 package org.convoy.phone.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,8 +10,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.convoy.phone.R;
+import org.convoy.phone.util.AppSettings;
 import org.convoy.phone.util.CallController;
 import org.convoy.phone.util.BaseActivity;
+import org.convoy.phone.util.CallRecordingService;
+import org.convoy.phone.util.StorageUtil;
 
 public class CallActivity extends BaseActivity {
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -47,6 +51,7 @@ public class CallActivity extends BaseActivity {
         answerButton.setOnClickListener(v -> {
             Call call = CallController.getCurrentCall();
             if (call != null) {
+                maybeStartManualRecording();
                 call.answer(0);
             }
         });
@@ -55,14 +60,14 @@ public class CallActivity extends BaseActivity {
             if (call != null) {
                 call.reject(false, null);
             }
-            finish();
+            stopManualRecordingAndClose();
         });
         endButton.setOnClickListener(v -> {
             Call call = CallController.getCurrentCall();
-            if (call != null) {
+            if (call != null && call.getState() != Call.STATE_DISCONNECTED) {
                 call.disconnect();
             }
-            finish();
+            stopManualRecordingAndClose();
         });
         muteButton.setOnClickListener(v -> {
             if (!CallController.toggleMute()) {
@@ -76,6 +81,25 @@ public class CallActivity extends BaseActivity {
             }
             refreshUi();
         });
+    }
+
+    private void maybeStartManualRecording() {
+        if (!AppSettings.isRecordCallsEnabled(this)) {
+            return;
+        }
+        StorageUtil.writeMarkerFile(this, "start.txt", "call started");
+        Intent recordingIntent = new Intent(this, CallRecordingService.class);
+        recordingIntent.setAction(CallRecordingService.ACTION_START);
+        startForegroundService(recordingIntent);
+    }
+
+    private void stopManualRecordingAndClose() {
+        StorageUtil.writeMarkerFile(this, "end.txt", "call ended");
+        Intent recordingIntent = new Intent(this, CallRecordingService.class);
+        recordingIntent.setAction(CallRecordingService.ACTION_STOP);
+        startService(recordingIntent);
+        CallController.closeEndedCall();
+        finish();
     }
 
     @Override
@@ -94,23 +118,22 @@ public class CallActivity extends BaseActivity {
 
     private void refreshUi() {
         Call call = CallController.getCurrentCall();
-        if (call == null) {
+        if (call == null && !CallController.isEndedAwaitingClose()) {
             finish();
             return;
         }
-        String handle = call.getDetails() != null && call.getDetails().getHandle() != null ? call.getDetails().getHandle().getSchemeSpecificPart() : "Unknown";
-        if (handle == null || handle.isEmpty()) {
-            handle = "Unknown";
-        }
-        nameView.setText(handle);
-        int state = call.getState();
+        nameView.setText(CallController.getDisplayHandle());
+        int state = call == null ? CallController.getDisplayState() : call.getState();
         boolean ringing = state == Call.STATE_RINGING;
         stateView.setText(stateLabel(state));
         answerButton.setVisibility(ringing ? android.view.View.VISIBLE : android.view.View.GONE);
         declineButton.setVisibility(ringing ? android.view.View.VISIBLE : android.view.View.GONE);
         endButton.setVisibility(ringing ? android.view.View.GONE : android.view.View.VISIBLE);
+        endButton.setText(state == Call.STATE_DISCONNECTED ? R.string.close : R.string.end_call);
         muteButton.setText(CallController.isMuted() ? R.string.unmute : R.string.mute);
         speakerButton.setText(CallController.isSpeakerOn() ? R.string.speaker_off : R.string.speaker);
+        muteButton.setEnabled(state != Call.STATE_DISCONNECTED);
+        speakerButton.setEnabled(state != Call.STATE_DISCONNECTED);
     }
 
     private String stateLabel(int state) {
