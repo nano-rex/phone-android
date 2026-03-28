@@ -15,6 +15,7 @@ import org.fossify.commons.dialogs.ChangeDateTimeFormatDialog
 import org.fossify.commons.dialogs.FeatureLockedDialog
 import org.fossify.commons.dialogs.RadioGroupDialog
 import org.fossify.commons.extensions.addLockedLabelIfNeeded
+import org.fossify.commons.extensions.beGone
 import org.fossify.commons.extensions.baseConfig
 import org.fossify.commons.extensions.beVisibleIf
 import org.fossify.commons.extensions.getFontSizeText
@@ -107,6 +108,7 @@ class SettingsActivity : SimpleActivity() {
         binding.apply {
             setupEdgeToEdge(padBottomSystem = listOf(settingsNestedScrollview))
             setupMaterialScrollListener(binding.settingsNestedScrollview, binding.settingsAppbar)
+            applyMinimalLayout()
         }
     }
 
@@ -114,23 +116,11 @@ class SettingsActivity : SimpleActivity() {
         super.onResume()
         setupTopAppBar(binding.settingsAppbar, NavigationIcon.Arrow)
 
-        setupCustomizeColors()
-        setupUseEnglish()
-        setupLanguage()
         setupManageBlockedNumbers()
-        setupManageSpeedDial()
-        setupChangeDateTimeFormat()
-        setupFontSize()
-        setupManageShownTabs()
-        setupDefaultTab()
         setupOnContactClick()
-        setupDialPadOpen()
         setupGroupSubsequentCalls()
         setupStartNameWithSurname()
         setupFormatPhoneNumbers()
-        setupDialpadVibrations()
-        setupDialpadNumbers()
-        setupDialpadBeeps()
         setupShowCallConfirmation()
         setupDisableProximitySensor()
         setupDisableSwipeToAnswer()
@@ -138,23 +128,42 @@ class SettingsActivity : SimpleActivity() {
         setupCallRecording()
         setupRecordingSource()
         setupRecordingFolder()
-        setupCallsExport()
-        setupCallsImport()
         updateTextColors(binding.settingsHolder)
 
         binding.apply {
             arrayOf(
-                settingsColorCustomizationSectionLabel,
                 settingsGeneralSettingsLabel,
                 settingsStartupLabel,
                 settingsCallsLabel,
-                settingsRecordingSectionLabel,
-                settingsDialpadSectionLabel,
-                settingsMigrationSectionLabel
+                settingsRecordingSectionLabel
             ).forEach {
                 it.setTextColor(getProperPrimaryColor())
             }
         }
+    }
+
+    private fun applyMinimalLayout() = binding.apply {
+        settingsColorCustomizationSectionLabel.beGone()
+        settingsColorCustomizationHolder.beGone()
+        settingsColorCustomizationDivider.beGone()
+        settingsPurchaseThankYouHolder.beGone()
+        settingsUseEnglishHolder.beGone()
+        settingsLanguageHolder.beGone()
+        settingsChangeDateTimeFormatHolder.beGone()
+        settingsFontSizeHolder.beGone()
+        settingsManageTabsHolder.beGone()
+        settingsDefaultTabHolder.beGone()
+        settingsOpenDialpadAtLaunchHolder.beGone()
+        settingsManageSpeedDialHolder.beGone()
+        settingsDialpadDivider.beGone()
+        settingsDialpadSectionLabel.beGone()
+        settingsHideDialpadNumbersHolder.beGone()
+        settingsDialpadVibrationHolder.beGone()
+        settingsDialpadBeepsHolder.beGone()
+        settingsMigrationDivider.beGone()
+        settingsMigrationSectionLabel.beGone()
+        settingsExportCallsHolder.beGone()
+        settingsImportCallsHolder.beGone()
     }
 
     private fun setupCallRecording() {
