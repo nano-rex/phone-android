@@ -87,6 +87,15 @@
     <string name="recordings_folder">Recordings folder</string>
     <string name="not_set">Not set</string>
     <string name="record_audio_permission_required">Recording needs microphone permission</string>
+    <string name="recordings">Recordings</string>
+    <string name="no_recordings_found">No recordings found.</string>
+    <string name="no_recording_selected">No recording selected.</string>
+    <string name="set_recordings_folder_first">Set the recordings folder in Settings first.</string>
+    <string name="now_playing_value">Now playing: %1$s</string>
+    <string name="play_recording_playback">Play</string>
+    <string name="pause_recording_playback">Pause</string>
+    <string name="time_pair">%1$s / %2$s</string>
+    <string name="time_zero_pair">00:00 / 00:00</string>
     <string name="hide_dialpad_numbers">Hide dialpad numbers</string>
     <string name="export_call_history">Export call history</string>
     <string name="import_call_history">Import call history</string>

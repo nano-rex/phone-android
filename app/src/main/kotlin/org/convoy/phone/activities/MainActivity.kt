@@ -315,6 +315,8 @@ class MainActivity : SimpleActivity() {
             icons.add(R.drawable.ic_clock_filled_vector)
         }
 
+        icons.add(R.drawable.ic_recordings_vector)
+
         return icons
     }
 
@@ -333,6 +335,8 @@ class MainActivity : SimpleActivity() {
         if (showTabs and TAB_CALL_HISTORY != 0) {
             icons.add(R.drawable.ic_clock_vector)
         }
+
+        icons.add(R.drawable.ic_recordings_vector)
 
         return icons
     }
@@ -396,11 +400,29 @@ class MainActivity : SimpleActivity() {
             }
         }
 
+        binding.mainTabsHolder.newTab().setCustomView(R.layout.bottom_tablayout_item).apply {
+            customView?.findViewById<ImageView>(R.id.tab_item_icon)?.setImageDrawable(
+                resources.getColoredDrawableWithColor(R.drawable.ic_recordings_vector, getProperTextColor())
+            )
+            customView?.findViewById<TextView>(R.id.tab_item_label)?.text = getString(R.string.recordings)
+            AutofitHelper.create(customView?.findViewById(R.id.tab_item_label))
+            binding.mainTabsHolder.addTab(this)
+        }
+
         binding.mainTabsHolder.onTabSelectionChanged(
             tabUnselectedAction = {
                 updateBottomTabItemColors(it.customView, false, getDeselectedTabDrawableIds()[it.position])
             },
             tabSelectedAction = {
+                val recordingsTabIndex = getAllFragments().size
+                if (it.position == recordingsTabIndex) {
+                    updateBottomTabItemColors(it.customView, true, getSelectedTabDrawableIds()[it.position])
+                    startActivity(Intent(applicationContext, RecordingsActivity::class.java))
+                    Handler().post {
+                        binding.mainTabsHolder.getTabAt(binding.viewPager.currentItem)?.select()
+                    }
+                    return@onTabSelectionChanged
+                }
                 getCurrentFragment()?.onSearchQueryChanged(binding.mainMenu.getCurrentQuery())
                 binding.viewPager.currentItem = it.position
                 updateBottomTabItemColors(it.customView, true, getSelectedTabDrawableIds()[it.position])
