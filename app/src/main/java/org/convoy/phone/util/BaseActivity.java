@@ -75,30 +75,21 @@ public abstract class BaseActivity extends Activity {
     }
 
     protected void startManualRecording(String source) {
-        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_entry", "source=" + source + " enabled=" + AppSettings.isRecordCallsEnabled(this));
-        boolean wrote = StorageUtil.writeMarkerFile(this, "start.txt", "call started");
-        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_start", "source=" + source + " wroteStart=" + wrote);
         try {
             Intent recordingIntent = new Intent(this, CallRecordingService.class);
             recordingIntent.setAction(CallRecordingService.ACTION_START);
             recordingIntent.putExtra(CallRecordingService.EXTRA_FORCE_START, true);
             startForegroundService(recordingIntent);
-            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=" + source + " started=true");
-        } catch (Exception e) {
-            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=" + source + " started=false error=" + String.valueOf(e));
+        } catch (Exception ignored) {
         }
     }
 
     protected void stopManualRecording(String source) {
-        boolean wrote = StorageUtil.writeMarkerFile(this, "end.txt", "call ended");
-        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_stop", "source=" + source + " wroteEnd=" + wrote);
         try {
             Intent recordingIntent = new Intent(this, CallRecordingService.class);
             recordingIntent.setAction(CallRecordingService.ACTION_STOP);
             startService(recordingIntent);
-            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=" + source + " started=true");
-        } catch (Exception e) {
-            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=" + source + " started=false error=" + String.valueOf(e));
+        } catch (Exception ignored) {
         }
     }
 }

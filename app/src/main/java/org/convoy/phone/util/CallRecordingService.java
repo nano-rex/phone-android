@@ -6,7 +6,6 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.widget.Toast;
@@ -70,9 +69,9 @@ public class CallRecordingService extends Service {
             //noinspection ResultOfMethodCallIgnored
             tempOutputFile.delete();
         }
+        boolean devicePathSelected = AppSettings.SOURCE_DEVICE.equals(AppSettings.getRecordingSource(this));
         for (int source : AppSettings.getMediaRecorderSourceFallbacks(this)) {
             try {
-                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_attempt", "source=" + source + " file=" + outputDisplayName);
                 recorder = new MediaRecorder();
                 recorder.setAudioSource(source);
                 recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -81,17 +80,28 @@ public class CallRecordingService extends Service {
                 recorder.setAudioEncodingBitRate(128000);
                 recorder.setOutputFile(tempOutputFile.getAbsolutePath());
                 recorder.prepare();
-                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_prepare_ok", "source=" + source);
                 recorder.start();
                 activeSource = source;
-                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_start_ok", "source=" + source);
                 return;
-            } catch (Exception e) {
-                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_start_fail", "source=" + source + " error=" + String.valueOf(e));
-                stopRecording();
+            } catch (Exception ignored) {
+                releaseRecorderOnly();
+                if (tempOutputFile.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    tempOutputFile.delete();
+                }
             }
         }
-        Toast.makeText(this, R.string.recording_start_failed, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, devicePathSelected ? R.string.recording_device_path_unsupported : R.string.recording_start_failed, Toast.LENGTH_SHORT).show();
+    }
+
+    private void releaseRecorderOnly() {
+        if (recorder != null) {
+            try {
+                recorder.release();
+            } catch (Exception ignored) {
+            }
+            recorder = null;
+        }
     }
 
     private void stopRecording() {
@@ -99,20 +109,12 @@ public class CallRecordingService extends Service {
         if (recorder != null) {
             try {
                 recorder.stop();
-                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_stop_ok", "source=" + String.valueOf(activeSource));
-            } catch (Exception ignored) {
-                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_stop_fail", "source=" + String.valueOf(activeSource) + " error=" + String.valueOf(ignored));
-            }
-            try {
-                recorder.release();
             } catch (Exception ignored) {
             }
-            recorder = null;
+            releaseRecorderOnly();
         }
         if (hadRecorder && tempOutputFile != null && tempOutputFile.exists()) {
             boolean copied = StorageUtil.copyRecordingToFolder(this, tempOutputFile, outputDisplayName == null ? tempOutputFile.getName() : outputDisplayName);
-            StorageUtil.writeTimestampedMarkerFile(this, copied ? "debug_record_copy_ok" : "debug_record_copy_fail",
-                    "source=" + String.valueOf(activeSource) + " size=" + tempOutputFile.length());
             if (!copied) {
                 Toast.makeText(this, R.string.recording_save_failed, Toast.LENGTH_SHORT).show();
             }
