@@ -78,6 +78,7 @@ public class ConvoyInCallService extends InCallService {
 
     private void maybeStartRecordingForState(int state) {
         boolean recordEnabled = AppSettings.isRecordCallsEnabled(this);
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_record_enabled_read", "value=" + recordEnabled + " state=" + state);
         if (!recordEnabled) {
             StorageUtil.writeTimestampedMarkerFile(this, "debug_record_skip", "reason=disabled state=" + state);
             return;

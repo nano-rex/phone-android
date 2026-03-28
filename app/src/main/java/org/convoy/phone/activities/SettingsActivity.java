@@ -23,6 +23,7 @@ public class SettingsActivity extends BaseActivity {
     private TextView folderStatus;
     private TextView defaultDialerStatus;
     private TextView blocklistStatus;
+    private Switch recordCallsSwitch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,13 +41,15 @@ public class SettingsActivity extends BaseActivity {
             recreate();
         });
 
-        Switch recordCalls = findViewById(R.id.record_calls_switch);
-        recordCalls.setChecked(AppSettings.isRecordCallsEnabled(this));
-        recordCalls.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        recordCallsSwitch = findViewById(R.id.record_calls_switch);
+        recordCallsSwitch.setChecked(AppSettings.isRecordCallsEnabled(this));
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_setting_record_calls", "onCreate value=" + AppSettings.isRecordCallsEnabled(this));
+        recordCallsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_PHONE_STATE}, REQ_AUDIO);
             }
             AppSettings.setRecordCallsEnabled(this, isChecked);
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_setting_record_calls", "toggle value=" + isChecked + " stored=" + AppSettings.isRecordCallsEnabled(this));
         });
 
         RadioGroup sourceGroup = findViewById(R.id.recording_source_group);
@@ -75,6 +78,7 @@ public class SettingsActivity extends BaseActivity {
         super.onResume();
         updateDialerStatus();
         updateBlocklistStatus();
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_setting_record_calls", "onResume value=" + AppSettings.isRecordCallsEnabled(this));
     }
 
     private void openFolderPicker() {
@@ -95,6 +99,27 @@ public class SettingsActivity extends BaseActivity {
         if (requestCode == DialerIntegration.REQ_DEFAULT_DIALER) {
             updateDialerStatus();
         updateBlocklistStatus();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_AUDIO) {
+            boolean granted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    granted = false;
+                    break;
+                }
+            }
+            if (!granted) {
+                AppSettings.setRecordCallsEnabled(this, false);
+                if (recordCallsSwitch != null) {
+                    recordCallsSwitch.setChecked(false);
+                }
+            }
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_setting_record_calls", "permission_result granted=" + granted + " stored=" + AppSettings.isRecordCallsEnabled(this));
         }
     }
 
