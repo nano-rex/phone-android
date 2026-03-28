@@ -23,8 +23,8 @@ public abstract class BaseActivity extends Activity {
     }
 
     protected void bindBottomNav(int selectedButtonId) {
-        int[] ids = new int[]{R.id.tab_home, R.id.tab_contacts, R.id.tab_recents, R.id.tab_recordings, R.id.tab_settings};
-        Class<?>[] targets = new Class[]{MainActivity.class, ContactsActivity.class, RecentsActivity.class, RecordingsActivity.class, SettingsActivity.class};
+        int[] ids = new int[]{R.id.tab_home, R.id.tab_contacts, R.id.tab_recents, R.id.tab_recordings};
+        Class<?>[] targets = new Class[]{MainActivity.class, ContactsActivity.class, RecentsActivity.class, RecordingsActivity.class};
         for (int i = 0; i < ids.length; i++) {
             Button button = findViewById(ids[i]);
             if (button == null) {

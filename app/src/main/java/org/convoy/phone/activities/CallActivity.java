@@ -1,6 +1,5 @@
 package org.convoy.phone.activities;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,8 +10,9 @@ import android.widget.Toast;
 
 import org.convoy.phone.R;
 import org.convoy.phone.util.CallController;
+import org.convoy.phone.util.BaseActivity;
 
-public class CallActivity extends Activity {
+public class CallActivity extends BaseActivity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private TextView nameView;
     private TextView stateView;

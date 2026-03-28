@@ -27,7 +27,7 @@ public class SettingsActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        bindBottomNav(R.id.tab_settings);
+        bindBottomNav(0);
         folderStatus = findViewById(R.id.folder_status);
         defaultDialerStatus = findViewById(R.id.default_dialer_status);
         blocklistStatus = findViewById(R.id.blocklist_status);

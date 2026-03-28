@@ -59,4 +59,19 @@ public final class AppSettings {
                 ? MediaRecorder.AudioSource.VOICE_RECOGNITION
                 : MediaRecorder.AudioSource.MIC;
     }
+
+    public static int[] getMediaRecorderSourceFallbacks(Context context) {
+        if (SOURCE_DEVICE.equals(getRecordingSource(context))) {
+            return new int[]{
+                    MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                    MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+                    MediaRecorder.AudioSource.MIC
+            };
+        }
+        return new int[]{
+                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION
+        };
+    }
 }

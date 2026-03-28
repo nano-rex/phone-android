@@ -2,12 +2,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:weightSum="5"
+    android:weightSum="4"
     android:padding="8dp">
 
     <Button android:id="@+id/tab_home" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/home" />
     <Button android:id="@+id/tab_contacts" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/contacts" />
     <Button android:id="@+id/tab_recents" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/recents" />
     <Button android:id="@+id/tab_recordings" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/recordings" />
-    <Button android:id="@+id/tab_settings" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/settings" />
 </LinearLayout>

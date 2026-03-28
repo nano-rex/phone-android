@@ -52,7 +52,9 @@ public final class StorageUtil {
         }
         String name = "call_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".m4a";
         try {
-            return DocumentsContract.createDocument(context.getContentResolver(), treeUri, "audio/mp4", name);
+            String parentId = DocumentsContract.getTreeDocumentId(treeUri);
+            Uri parentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, parentId);
+            return DocumentsContract.createDocument(context.getContentResolver(), parentUri, "audio/mp4", name);
         } catch (Exception e) {
             return null;
         }

@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
+import android.widget.Toast;
 
 import org.convoy.phone.R;
 
@@ -60,23 +61,27 @@ public class CallRecordingService extends Service {
         if (uri == null) {
             return;
         }
-        try {
-            fileDescriptor = getContentResolver().openFileDescriptor(uri, "w");
-            if (fileDescriptor == null) {
+        for (int source : AppSettings.getMediaRecorderSourceFallbacks(this)) {
+            try {
+                fileDescriptor = getContentResolver().openFileDescriptor(uri, "w");
+                if (fileDescriptor == null) {
+                    return;
+                }
+                recorder = new MediaRecorder();
+                recorder.setAudioSource(source);
+                recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                recorder.setAudioSamplingRate(44100);
+                recorder.setAudioEncodingBitRate(128000);
+                recorder.setOutputFile(fileDescriptor.getFileDescriptor());
+                recorder.prepare();
+                recorder.start();
                 return;
+            } catch (Exception e) {
+                stopRecording();
             }
-            recorder = new MediaRecorder();
-            recorder.setAudioSource(AppSettings.getMediaRecorderSource(this));
-            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-            recorder.setAudioSamplingRate(44100);
-            recorder.setAudioEncodingBitRate(128000);
-            recorder.setOutputFile(fileDescriptor.getFileDescriptor());
-            recorder.prepare();
-            recorder.start();
-        } catch (Exception e) {
-            stopRecording();
         }
+        Toast.makeText(this, R.string.recording_start_failed, Toast.LENGTH_SHORT).show();
     }
 
     private void stopRecording() {

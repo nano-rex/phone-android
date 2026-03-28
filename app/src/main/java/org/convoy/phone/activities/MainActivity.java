@@ -27,6 +27,7 @@ public class MainActivity extends BaseActivity {
         setupDigits();
         findViewById(R.id.call_button).setOnClickListener(v -> placeCall());
         findViewById(R.id.clear_button).setOnClickListener(v -> numberInput.setText(""));
+        findViewById(R.id.settings_button).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
     }
 
     @Override
