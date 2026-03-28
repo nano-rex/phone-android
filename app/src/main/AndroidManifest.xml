@@ -79,13 +79,6 @@
             tools:replace="android:label" />
 
         <activity
-            android:name=".activities.ManageSpeedDialActivity"
-            android:configChanges="orientation"
-            android:exported="false"
-            android:label="@string/speed_dial"
-            android:parentActivityName=".activities.SettingsActivity" />
-
-        <activity
             android:name=".activities.ConferenceActivity"
             android:configChanges="orientation"
             android:exported="false"

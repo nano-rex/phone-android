@@ -5,12 +5,9 @@ import android.net.Uri
 import android.telecom.PhoneAccountHandle
 import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import org.fossify.commons.helpers.BaseConfig
 import org.convoy.phone.extensions.getPhoneAccountHandleModel
 import org.convoy.phone.extensions.putPhoneAccountHandle
-import org.convoy.phone.models.SpeedDial
 import androidx.core.content.edit
 import java.util.Locale
 
@@ -29,20 +26,6 @@ class Config(context: Context) : BaseConfig(context) {
             .firstOrNull { !it.isNullOrBlank() }
             ?.uppercase(Locale.US)
             .orEmpty()
-    }
-
-    fun getSpeedDialValues(): ArrayList<SpeedDial> {
-        val speedDialType = object : TypeToken<List<SpeedDial>>() {}.type
-        val speedDialValues = Gson().fromJson<ArrayList<SpeedDial>>(speedDial, speedDialType) ?: ArrayList(1)
-
-        for (i in 1..9) {
-            val speedDial = SpeedDial(i, "", "")
-            if (speedDialValues.firstOrNull { it.id == i } == null) {
-                speedDialValues.add(speedDial)
-            }
-        }
-
-        return speedDialValues
     }
 
     fun saveCustomSIM(number: String, handle: PhoneAccountHandle) {

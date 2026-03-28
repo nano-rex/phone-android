@@ -60,7 +60,6 @@ import org.convoy.phone.extensions.startContactDetailsIntent
 import org.convoy.phone.helpers.DIALPAD_TONE_LENGTH_MS
 import org.convoy.phone.helpers.RecentsHelper
 import org.convoy.phone.helpers.ToneGeneratorHelper
-import org.convoy.phone.models.SpeedDial
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -68,7 +67,6 @@ class DialpadActivity : SimpleActivity() {
     private val binding by viewBinding(ActivityDialpadBinding::inflate)
 
     private var allContacts = ArrayList<Contact>()
-    private var speedDialValues = ArrayList<SpeedDial>()
     private var privateCursor: Cursor? = null
     private var toneGeneratorHelper: ToneGeneratorHelper? = null
     private val longPressTimeout = ViewConfiguration.getLongPressTimeout().toLong()
@@ -143,7 +141,6 @@ class DialpadActivity : SimpleActivity() {
         }
 
         setupOptionsMenu()
-        speedDialValues = config.getSpeedDialValues()
         privateCursor = getMyContactsCursor(favoritesOnly = false, withPhoneNumbersOnly = true)
 
         toneGeneratorHelper = ToneGeneratorHelper(this, DIALPAD_TONE_LENGTH_MS)
@@ -389,17 +386,6 @@ class DialpadActivity : SimpleActivity() {
         }
     }
 
-    private fun speedDial(id: Int): Boolean {
-        if (binding.dialpadInput.value.length == 1) {
-            val speedDial = speedDialValues.firstOrNull { it.id == id }
-            if (speedDial?.isValid() == true) {
-                initCall(speedDial.number, speedDial.getName(this))
-                return true
-            }
-        }
-        return false
-    }
-
     private fun startDialpadTone(char: Char) {
         if (config.dialpadBeeps) {
             pressedKeys.add(char)
@@ -428,12 +414,6 @@ class DialpadActivity : SimpleActivity() {
         if (char == '0') {
             clearChar(view)
             dialpadPressed('+', view)
-        } else {
-            val result = speedDial(char.digitToInt())
-            if (result) {
-                stopDialpadTone(char)
-                clearChar(view)
-            }
         }
     }
 

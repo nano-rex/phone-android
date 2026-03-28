@@ -255,14 +255,6 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupManageSpeedDial() {
-        binding.settingsManageSpeedDialHolder.setOnClickListener {
-            Intent(this, ManageSpeedDialActivity::class.java).apply {
-                startActivity(this)
-            }
-        }
-    }
-
     private fun setupChangeDateTimeFormat() {
         binding.settingsChangeDateTimeFormatHolder.setOnClickListener {
             ChangeDateTimeFormatDialog(this) {}
