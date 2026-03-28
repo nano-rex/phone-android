@@ -85,19 +85,32 @@ public class CallActivity extends BaseActivity {
 
     private void maybeStartManualRecording() {
         if (!AppSettings.isRecordCallsEnabled(this)) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_skip", "source=answer reason=disabled");
             return;
         }
-        StorageUtil.writeMarkerFile(this, "start.txt", "call started");
-        Intent recordingIntent = new Intent(this, CallRecordingService.class);
-        recordingIntent.setAction(CallRecordingService.ACTION_START);
-        startForegroundService(recordingIntent);
+        boolean wrote = StorageUtil.writeMarkerFile(this, "start.txt", "call started");
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_start", "source=answer wroteStart=" + wrote);
+        try {
+            Intent recordingIntent = new Intent(this, CallRecordingService.class);
+            recordingIntent.setAction(CallRecordingService.ACTION_START);
+            startForegroundService(recordingIntent);
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=answer started=true");
+        } catch (Exception e) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=answer started=false error=" + String.valueOf(e));
+        }
     }
 
     private void stopManualRecordingAndClose() {
-        StorageUtil.writeMarkerFile(this, "end.txt", "call ended");
-        Intent recordingIntent = new Intent(this, CallRecordingService.class);
-        recordingIntent.setAction(CallRecordingService.ACTION_STOP);
-        startService(recordingIntent);
+        boolean wrote = StorageUtil.writeMarkerFile(this, "end.txt", "call ended");
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_stop", "wroteEnd=" + wrote + " state=" + CallController.getDisplayState());
+        try {
+            Intent recordingIntent = new Intent(this, CallRecordingService.class);
+            recordingIntent.setAction(CallRecordingService.ACTION_STOP);
+            startService(recordingIntent);
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=stop started=true");
+        } catch (Exception e) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=stop started=false error=" + String.valueOf(e));
+        }
         CallController.closeEndedCall();
         finish();
     }

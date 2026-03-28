@@ -83,11 +83,18 @@ public class MainActivity extends BaseActivity {
 
     private void maybeStartManualRecording() {
         if (!AppSettings.isRecordCallsEnabled(this)) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_skip", "source=main reason=disabled");
             return;
         }
-        StorageUtil.writeMarkerFile(this, "start.txt", "call started");
-        Intent recordingIntent = new Intent(this, CallRecordingService.class);
-        recordingIntent.setAction(CallRecordingService.ACTION_START);
-        startForegroundService(recordingIntent);
+        boolean wrote = StorageUtil.writeMarkerFile(this, "start.txt", "call started");
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_start", "source=main wroteStart=" + wrote);
+        try {
+            Intent recordingIntent = new Intent(this, CallRecordingService.class);
+            recordingIntent.setAction(CallRecordingService.ACTION_START);
+            startForegroundService(recordingIntent);
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=main started=true");
+        } catch (Exception e) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=main started=false error=" + String.valueOf(e));
+        }
     }
 }
