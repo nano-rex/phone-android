@@ -1,7 +1,9 @@
 package org.convoy.phone.activities;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -21,9 +23,36 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         numberInput = findViewById(R.id.number_input);
         bindBottomNav(R.id.tab_home);
+        applyDialIntent(getIntent());
         setupDigits();
         findViewById(R.id.call_button).setOnClickListener(v -> placeCall());
         findViewById(R.id.clear_button).setOnClickListener(v -> numberInput.setText(""));
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        applyDialIntent(intent);
+    }
+
+    private void applyDialIntent(Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        Uri data = intent.getData();
+        if (data == null) {
+            return;
+        }
+        String scheme = data.getScheme();
+        if (!"tel".equalsIgnoreCase(scheme)) {
+            return;
+        }
+        String number = data.getSchemeSpecificPart();
+        if (number != null && !number.isEmpty()) {
+            numberInput.setText(number);
+            numberInput.setSelection(number.length());
+        }
     }
 
     private void setupDigits() {
