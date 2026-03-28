@@ -6,7 +6,35 @@
 
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/contacts" android:textSize="24sp" android:textStyle="bold" />
     <EditText android:id="@+id/search_contacts" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/search_contacts" android:layout_marginTop="12dp" />
-    <Button android:id="@+id/new_contact_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/new_contact" android:layout_marginTop="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <Button
+            android:id="@+id/new_contact_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/new_contact" />
+
+        <Button
+            android:id="@+id/favorites_filter_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/show_favorites_only" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/sort_contacts_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/sort_favorites_first" />
+
     <TextView android:id="@+id/empty_contacts" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/no_contacts" android:visibility="gone" android:layout_marginTop="8dp" />
     <ListView android:id="@+id/contacts_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
     <include layout="@layout/bottom_nav" />

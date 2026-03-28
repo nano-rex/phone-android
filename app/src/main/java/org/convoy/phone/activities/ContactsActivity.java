@@ -1,7 +1,6 @@
 package org.convoy.phone.activities;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -11,23 +10,28 @@ import android.provider.ContactsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.convoy.phone.R;
 import org.convoy.phone.model.ContactItem;
 import org.convoy.phone.util.BaseActivity;
-import org.convoy.phone.util.BlockedNumberStore;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 public class ContactsActivity extends BaseActivity {
     private static final int REQ_CONTACTS = 2;
     private final List<ContactItem> allContacts = new ArrayList<>();
     private final List<ContactItem> filteredContacts = new ArrayList<>();
     private ArrayAdapter<ContactItem> adapter;
+    private EditText searchView;
+    private boolean favoritesOnly;
+    private boolean favoritesFirst = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,19 +39,15 @@ public class ContactsActivity extends BaseActivity {
         setContentView(R.layout.activity_contacts);
         bindBottomNav(R.id.tab_contacts);
 
+        searchView = findViewById(R.id.search_contacts);
         ListView listView = findViewById(R.id.contacts_list);
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, filteredContacts);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener((parent, view, position, id) -> dialNumber(filteredContacts.get(position).number));
-        listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            showContactActions(filteredContacts.get(position));
-            return true;
-        });
+        listView.setOnItemClickListener((parent, view, position, id) -> openDetails(filteredContacts.get(position)));
 
-        EditText search = findViewById(R.id.search_contacts);
-        search.addTextChangedListener(new TextWatcher() {
+        searchView.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { filter(s.toString()); }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { applyFilters(); }
             @Override public void afterTextChanged(Editable s) {}
         });
 
@@ -55,6 +55,20 @@ public class ContactsActivity extends BaseActivity {
             Intent intent = new Intent(ContactsContract.Intents.Insert.ACTION);
             intent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
             startActivity(intent);
+        });
+
+        Button favoritesButton = findViewById(R.id.favorites_filter_button);
+        favoritesButton.setOnClickListener(v -> {
+            favoritesOnly = !favoritesOnly;
+            favoritesButton.setText(favoritesOnly ? R.string.show_all_contacts : R.string.show_favorites_only);
+            applyFilters();
+        });
+
+        Button sortButton = findViewById(R.id.sort_contacts_button);
+        sortButton.setOnClickListener(v -> {
+            favoritesFirst = !favoritesFirst;
+            sortButton.setText(favoritesFirst ? R.string.sort_favorites_first : R.string.sort_name_only);
+            applyFilters();
         });
 
         loadContacts();
@@ -66,58 +80,73 @@ public class ContactsActivity extends BaseActivity {
         loadContacts();
     }
 
-    private void showContactActions(ContactItem item) {
-        boolean blocked = BlockedNumberStore.isBlocked(this, item.number);
-        String[] actions = new String[]{getString(R.string.call), getString(R.string.edit_contact), getString(R.string.copy_number), blocked ? getString(R.string.unblock_number) : getString(R.string.block_number)};
-        new AlertDialog.Builder(this)
-                .setTitle(item.name)
-                .setItems(actions, (dialog, which) -> {
-                    if (which == 0) {
-                        dialNumber(item.number);
-                    } else if (which == 1) {
-                        Intent intent = new Intent(Intent.ACTION_EDIT);
-                        intent.setDataAndType(item.contactUri, ContactsContract.Contacts.CONTENT_ITEM_TYPE);
-                        intent.putExtra("finishActivityOnSaveCompleted", true);
-                        startActivity(intent);
-                    } else if (which == 2) {
-                        shareToClipboard(getString(R.string.copy_number), item.number);
-                        Toast.makeText(this, R.string.copy_number, Toast.LENGTH_SHORT).show();
-                    } else {
-                        BlockedNumberStore.setBlocked(this, item.number, !blocked);
-                        Toast.makeText(this, blocked ? R.string.unblock_number : R.string.block_number, Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .show();
+    private void openDetails(ContactItem item) {
+        Intent intent = new Intent(this, ContactDetailActivity.class);
+        intent.putExtra(ContactDetailActivity.EXTRA_CONTACT_ID, item.contactId);
+        intent.putExtra(ContactDetailActivity.EXTRA_CONTACT_URI, item.contactUri == null ? null : item.contactUri.toString());
+        intent.putExtra(ContactDetailActivity.EXTRA_NAME, item.name);
+        intent.putExtra(ContactDetailActivity.EXTRA_NUMBER, item.number);
+        intent.putExtra(ContactDetailActivity.EXTRA_FAVORITE, item.favorite);
+        startActivity(intent);
     }
 
     private void loadContacts() {
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, REQ_CONTACTS);
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS}, REQ_CONTACTS);
             return;
         }
         allContacts.clear();
         try (Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.CONTACT_ID},
-                null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC")) {
+                new String[]{
+                        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                        ContactsContract.CommonDataKinds.Phone.NUMBER,
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                        ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY,
+                        ContactsContract.CommonDataKinds.Phone.STARRED
+                },
+                null, null, null)) {
             if (cursor != null) {
                 while (cursor.moveToNext()) {
+                    String displayName = cursor.getString(0);
+                    String number = cursor.getString(1);
                     long contactId = cursor.getLong(2);
-                    Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, String.valueOf(contactId));
-                    allContacts.add(new ContactItem(cursor.getString(0), cursor.getString(1), uri));
+                    String lookupKey = cursor.getString(3);
+                    boolean favorite = cursor.getInt(4) == 1;
+                    Uri uri = ContactsContract.Contacts.getLookupUri(contactId, lookupKey);
+                    allContacts.add(new ContactItem(contactId, displayName, number, uri, favorite));
                 }
             }
         }
-        filter("");
+        applyFilters();
     }
 
-    private void filter(String query) {
+    private void applyFilters() {
         filteredContacts.clear();
-        String q = query == null ? "" : query.toLowerCase();
+        String query = searchView.getText() == null ? "" : searchView.getText().toString().trim().toLowerCase(Locale.US);
         for (ContactItem item : allContacts) {
-            if (q.isEmpty() || item.name.toLowerCase().contains(q) || item.number.contains(q)) {
-                filteredContacts.add(item);
+            if (favoritesOnly && !item.favorite) {
+                continue;
             }
+            if (!query.isEmpty()) {
+                String name = item.name == null ? "" : item.name.toLowerCase(Locale.US);
+                String number = item.number == null ? "" : item.number;
+                if (!name.contains(query) && !number.contains(query)) {
+                    continue;
+                }
+            }
+            filteredContacts.add(item);
         }
+        Collections.sort(filteredContacts, new Comparator<ContactItem>() {
+            @Override
+            public int compare(ContactItem a, ContactItem b) {
+                if (favoritesFirst && a.favorite != b.favorite) {
+                    return a.favorite ? -1 : 1;
+                }
+                String an = a.name == null ? "" : a.name.toLowerCase(Locale.US);
+                String bn = b.name == null ? "" : b.name.toLowerCase(Locale.US);
+                return an.compareTo(bn);
+            }
+        });
         adapter.notifyDataSetChanged();
         findViewById(R.id.empty_contacts).setVisibility(filteredContacts.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
     }

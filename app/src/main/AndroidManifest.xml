@@ -24,7 +24,8 @@
             android:launchMode="singleTop"
             android:showOnLockScreen="true"
             android:turnScreenOn="true" />
-        <activity android:name=".activities.SettingsActivity" />
+        <activity android:name=".activities.ContactDetailActivity" />
+<activity android:name=".activities.SettingsActivity" />
         <activity android:name=".activities.RecordingsActivity" />
         <activity android:name=".activities.RecentsActivity" />
         <activity android:name=".activities.ContactsActivity" />

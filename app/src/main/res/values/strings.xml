@@ -56,4 +56,11 @@
     <string name="unmute">Unmute</string>
     <string name="system_blocklist_enabled">System blocklist active</string>
     <string name="system_blocklist_fallback">Fallback blocklist active</string>
+    <string name="show_favorites_only">Favorites only</string>
+    <string name="show_all_contacts">Show all</string>
+    <string name="sort_favorites_first">Favorites first</string>
+    <string name="sort_name_only">Sort by name</string>
+    <string name="add_favorite">Add favorite</string>
+    <string name="remove_favorite">Remove favorite</string>
+    <string name="unknown_contact">Unknown contact</string>
 </resources>
