@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.convoy.phone.R;
 import org.convoy.phone.util.AppSettings;
@@ -53,7 +54,12 @@ public class SettingsActivity extends BaseActivity {
                 checkedId == R.id.source_device ? AppSettings.SOURCE_DEVICE : AppSettings.SOURCE_ENVIRONMENT));
 
         findViewById(R.id.choose_folder_button).setOnClickListener(v -> openFolderPicker());
-        findViewById(R.id.request_default_dialer_button).setOnClickListener(v -> startActivityForResult(DialerIntegration.createRoleRequestIntent(this), DialerIntegration.REQ_DEFAULT_DIALER));
+        findViewById(R.id.request_default_dialer_button).setOnClickListener(v -> {
+            boolean launched = DialerIntegration.requestDefaultDialer(this);
+            if (!launched) {
+                Toast.makeText(this, R.string.default_dialer_request_unavailable, Toast.LENGTH_SHORT).show();
+            }
+        });
         updateFolderStatus();
         updateDialerStatus();
         updateBlocklistStatus();

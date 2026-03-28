@@ -36,6 +36,7 @@
     <string name="default_dialer_enabled">Convoy Phone is the default dialer</string>
     <string name="default_dialer_disabled">Convoy Phone is not the default dialer</string>
     <string name="set_default_dialer_to_call">Set Convoy Phone as the default dialer to place calls here</string>
+    <string name="default_dialer_request_unavailable">Default dialer request is unavailable on this device</string>
     <string name="edit_contact">Edit contact</string>
     <string name="block_number">Block number</string>
     <string name="unblock_number">Unblock number</string>
