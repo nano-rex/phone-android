@@ -11,6 +11,8 @@ public final class AppSettings {
     private static final String KEY_RECORD_CALLS = "record_calls";
     private static final String KEY_RECORDING_SOURCE = "recording_source";
     private static final String KEY_RECORDINGS_TREE_URI = "recordings_tree_uri";
+    private static final String KEY_COMPAT_TEST_PENDING = "compat_test_pending";
+    private static final String KEY_BEST_RECORDER_SOURCE = "best_recorder_source";
 
     public static final String SOURCE_ENVIRONMENT = "environment";
     public static final String SOURCE_DEVICE = "device";
@@ -42,7 +44,7 @@ public final class AppSettings {
     }
 
     public static void setRecordingSource(Context context, String value) {
-        prefs(context).edit().putString(KEY_RECORDING_SOURCE, value).commit();
+        prefs(context).edit().putString(KEY_RECORDING_SOURCE, value).remove(KEY_BEST_RECORDER_SOURCE).commit();
     }
 
     public static Uri getRecordingsTreeUri(Context context) {
@@ -60,7 +62,45 @@ public final class AppSettings {
                 : MediaRecorder.AudioSource.MIC;
     }
 
+    public static boolean isCompatibilityTestPending(Context context) {
+        return prefs(context).getBoolean(KEY_COMPAT_TEST_PENDING, false);
+    }
+
+    public static void setCompatibilityTestPending(Context context, boolean value) {
+        prefs(context).edit().putBoolean(KEY_COMPAT_TEST_PENDING, value).commit();
+    }
+
+    public static Integer getBestRecorderSource(Context context) {
+        if (!prefs(context).contains(KEY_BEST_RECORDER_SOURCE)) {
+            return null;
+        }
+        return prefs(context).getInt(KEY_BEST_RECORDER_SOURCE, MediaRecorder.AudioSource.MIC);
+    }
+
+    public static void setBestRecorderSource(Context context, Integer value) {
+        SharedPreferences.Editor editor = prefs(context).edit();
+        if (value == null) {
+            editor.remove(KEY_BEST_RECORDER_SOURCE);
+        } else {
+            editor.putInt(KEY_BEST_RECORDER_SOURCE, value);
+        }
+        editor.commit();
+    }
+
+    public static int[] getCompatibilityTestSources() {
+        return new int[]{
+                MediaRecorder.AudioSource.VOICE_CALL,
+                MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                MediaRecorder.AudioSource.MIC
+        };
+    }
+
     public static int[] getMediaRecorderSourceFallbacks(Context context) {
+        Integer best = getBestRecorderSource(context);
+        if (best != null) {
+            return new int[]{best};
+        }
         if (SOURCE_DEVICE.equals(getRecordingSource(context))) {
             return new int[]{
                     MediaRecorder.AudioSource.VOICE_CALL,
@@ -71,5 +111,20 @@ public final class AppSettings {
         return new int[]{
                 MediaRecorder.AudioSource.MIC
         };
+    }
+
+    public static String describeRecorderSource(int source) {
+        switch (source) {
+            case MediaRecorder.AudioSource.VOICE_CALL:
+                return "Device voice path (VOICE_CALL)";
+            case MediaRecorder.AudioSource.VOICE_COMMUNICATION:
+                return "Voice communication";
+            case MediaRecorder.AudioSource.VOICE_RECOGNITION:
+                return "Voice recognition";
+            case MediaRecorder.AudioSource.MIC:
+                return "Environment mic";
+            default:
+                return "Unknown";
+        }
     }
 }

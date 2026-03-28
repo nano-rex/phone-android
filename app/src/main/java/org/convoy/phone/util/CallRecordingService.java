@@ -60,6 +60,7 @@ public class CallRecordingService extends Service {
     }
 
     private void startRecording(boolean forceStart) {
+        boolean testPending = AppSettings.isCompatibilityTestPending(this);
         if ((!forceStart && !AppSettings.isRecordCallsEnabled(this)) || recorder != null) {
             return;
         }
@@ -70,7 +71,8 @@ public class CallRecordingService extends Service {
             tempOutputFile.delete();
         }
         boolean devicePathSelected = AppSettings.SOURCE_DEVICE.equals(AppSettings.getRecordingSource(this));
-        for (int source : AppSettings.getMediaRecorderSourceFallbacks(this)) {
+        int[] sources = testPending ? AppSettings.getCompatibilityTestSources() : AppSettings.getMediaRecorderSourceFallbacks(this);
+        for (int source : sources) {
             try {
                 recorder = new MediaRecorder();
                 recorder.setAudioSource(source);
@@ -82,6 +84,11 @@ public class CallRecordingService extends Service {
                 recorder.prepare();
                 recorder.start();
                 activeSource = source;
+                if (testPending) {
+                    AppSettings.setBestRecorderSource(this, source);
+                    AppSettings.setCompatibilityTestPending(this, false);
+                    Toast.makeText(this, getString(R.string.compatibility_test_result, AppSettings.describeRecorderSource(source)), Toast.LENGTH_LONG).show();
+                }
                 return;
             } catch (Exception ignored) {
                 releaseRecorderOnly();
@@ -90,6 +97,9 @@ public class CallRecordingService extends Service {
                     tempOutputFile.delete();
                 }
             }
+        }
+        if (testPending) {
+            AppSettings.setCompatibilityTestPending(this, false);
         }
         Toast.makeText(this, devicePathSelected ? R.string.recording_device_path_unsupported : R.string.recording_start_failed, Toast.LENGTH_SHORT).show();
     }

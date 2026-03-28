@@ -23,6 +23,12 @@
     <string name="dark_mode">Dark mode</string>
     <string name="open_folder_picker">Pick recordings folder</string>
     <string name="folder_not_set">Folder not set</string>
+    <string name="run_compatibility_test">Run compatibility test</string>
+    <string name="compatibility_test_not_run">No compatibility test result saved</string>
+    <string name="compatibility_test_pending">Compatibility test armed. Place a short call to let Convoy test capture methods.</string>
+    <string name="compatibility_test_result">Best method: %1$s</string>
+    <string name="compatibility_test_armed">Compatibility test armed. Start a short call to let Convoy find the best capture method.</string>
+    <string name="compatibility_test_permission_first">Grant recording permission first, then run the compatibility test again.</string>
     <string name="folder_set">Folder configured</string>
     <string name="recording_note">Direct device capture is often blocked by the phone or Android build. For reliable recording, use Environment mic and speakerphone.</string>
     <string name="permission_required">Required permission denied</string>

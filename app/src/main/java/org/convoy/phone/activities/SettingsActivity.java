@@ -22,6 +22,7 @@ public class SettingsActivity extends BaseActivity {
     private TextView folderStatus;
     private TextView defaultDialerStatus;
     private TextView blocklistStatus;
+    private TextView compatibilityStatus;
     private Switch recordCallsSwitch;
 
     @Override
@@ -32,6 +33,7 @@ public class SettingsActivity extends BaseActivity {
         folderStatus = findViewById(R.id.folder_status);
         defaultDialerStatus = findViewById(R.id.default_dialer_status);
         blocklistStatus = findViewById(R.id.blocklist_status);
+        compatibilityStatus = findViewById(R.id.compatibility_status);
 
         Switch darkMode = findViewById(R.id.dark_mode_switch);
         darkMode.setChecked(AppSettings.isDarkMode(this));
@@ -51,8 +53,27 @@ public class SettingsActivity extends BaseActivity {
 
         RadioGroup sourceGroup = findViewById(R.id.recording_source_group);
         sourceGroup.check(AppSettings.SOURCE_DEVICE.equals(AppSettings.getRecordingSource(this)) ? R.id.source_device : R.id.source_environment);
-        sourceGroup.setOnCheckedChangeListener((group, checkedId) -> AppSettings.setRecordingSource(this,
-                checkedId == R.id.source_device ? AppSettings.SOURCE_DEVICE : AppSettings.SOURCE_ENVIRONMENT));
+        sourceGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            AppSettings.setRecordingSource(this,
+                    checkedId == R.id.source_device ? AppSettings.SOURCE_DEVICE : AppSettings.SOURCE_ENVIRONMENT);
+            updateCompatibilityStatus();
+        });
+
+        findViewById(R.id.run_compatibility_test_button).setOnClickListener(v -> {
+            if (AppSettings.getRecordingsTreeUri(this) == null) {
+                Toast.makeText(this, R.string.set_folder_first, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_PHONE_STATE}, REQ_AUDIO);
+                Toast.makeText(this, R.string.compatibility_test_permission_first, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            AppSettings.setCompatibilityTestPending(this, true);
+            AppSettings.setBestRecorderSource(this, null);
+            updateCompatibilityStatus();
+            Toast.makeText(this, R.string.compatibility_test_armed, Toast.LENGTH_LONG).show();
+        });
 
         findViewById(R.id.choose_folder_button).setOnClickListener(v -> openFolderPicker());
         findViewById(R.id.request_default_dialer_button).setOnClickListener(v -> {
@@ -64,6 +85,7 @@ public class SettingsActivity extends BaseActivity {
         updateFolderStatus();
         updateDialerStatus();
         updateBlocklistStatus();
+        updateCompatibilityStatus();
     }
 
     @Override
@@ -71,6 +93,7 @@ public class SettingsActivity extends BaseActivity {
         super.onResume();
         updateDialerStatus();
         updateBlocklistStatus();
+        updateCompatibilityStatus();
     }
 
     private void openFolderPicker() {
@@ -90,7 +113,8 @@ public class SettingsActivity extends BaseActivity {
         }
         if (requestCode == DialerIntegration.REQ_DEFAULT_DIALER) {
             updateDialerStatus();
-        updateBlocklistStatus();
+            updateBlocklistStatus();
+            updateCompatibilityStatus();
         }
     }
 
@@ -111,6 +135,7 @@ public class SettingsActivity extends BaseActivity {
                     recordCallsSwitch.setChecked(false);
                 }
             }
+            updateCompatibilityStatus();
         }
     }
 
@@ -128,5 +153,18 @@ public class SettingsActivity extends BaseActivity {
         blocklistStatus.setText(BlockedNumberStore.canUseSystemBlocklist(this)
                 ? R.string.system_blocklist_enabled
                 : R.string.system_blocklist_fallback);
+    }
+
+    private void updateCompatibilityStatus() {
+        if (AppSettings.isCompatibilityTestPending(this)) {
+            compatibilityStatus.setText(R.string.compatibility_test_pending);
+            return;
+        }
+        Integer best = AppSettings.getBestRecorderSource(this);
+        if (best != null) {
+            compatibilityStatus.setText(getString(R.string.compatibility_test_result, AppSettings.describeRecorderSource(best)));
+            return;
+        }
+        compatibilityStatus.setText(R.string.compatibility_test_not_run);
     }
 }
