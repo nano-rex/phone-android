@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public final class StorageUtil {
     private StorageUtil() {}
@@ -91,6 +92,38 @@ public final class StorageUtil {
                 while ((read = in.read(buffer)) != -1) {
                     out.write(buffer, 0, read);
                 }
+                out.flush();
+                return true;
+            }
+        } catch (Exception e) {
+            if (documentUri != null) {
+                try {
+                    DocumentsContract.deleteDocument(context.getContentResolver(), documentUri);
+                } catch (Exception ignored) {
+                }
+            }
+            return false;
+        }
+    }
+
+    public static boolean writeMarkerFile(Context context, String displayName, String content) {
+        Uri documentUri = null;
+        try {
+            Uri treeUri = AppSettings.getRecordingsTreeUri(context);
+            if (treeUri == null) {
+                return false;
+            }
+            String parentId = DocumentsContract.getTreeDocumentId(treeUri);
+            Uri parentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, parentId);
+            documentUri = DocumentsContract.createDocument(context.getContentResolver(), parentUri, "text/plain", displayName);
+            if (documentUri == null) {
+                return false;
+            }
+            try (OutputStream out = context.getContentResolver().openOutputStream(documentUri, "w")) {
+                if (out == null) {
+                    return false;
+                }
+                out.write(content.getBytes(StandardCharsets.UTF_8));
                 out.flush();
                 return true;
             }

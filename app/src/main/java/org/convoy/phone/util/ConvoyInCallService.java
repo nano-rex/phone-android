@@ -7,6 +7,7 @@ import android.telecom.InCallService;
 
 public class ConvoyInCallService extends InCallService {
     private int trackedCalls;
+    private boolean wroteStartMarker;
 
     @Override
     public void onCreate() {
@@ -74,6 +75,10 @@ public class ConvoyInCallService extends InCallService {
             return;
         }
         if (state == Call.STATE_ACTIVE || state == Call.STATE_DIALING || state == Call.STATE_CONNECTING) {
+            if (!wroteStartMarker) {
+                StorageUtil.writeMarkerFile(this, "start.txt", "call started");
+                wroteStartMarker = true;
+            }
             Intent recordingIntent = new Intent(this, CallRecordingService.class);
             recordingIntent.setAction(CallRecordingService.ACTION_START);
             startForegroundService(recordingIntent);
@@ -81,6 +86,10 @@ public class ConvoyInCallService extends InCallService {
     }
 
     private void stopRecordingService() {
+        if (wroteStartMarker) {
+            StorageUtil.writeMarkerFile(this, "end.txt", "call ended");
+            wroteStartMarker = false;
+        }
         Intent recordingIntent = new Intent(this, CallRecordingService.class);
         recordingIntent.setAction(CallRecordingService.ACTION_STOP);
         startService(recordingIntent);
