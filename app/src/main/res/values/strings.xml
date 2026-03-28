@@ -32,6 +32,7 @@
     <string name="recording_service_channel">Call recording</string>
     <string name="recording_service_active">Recording call audio</string>
     <string name="recording_start_failed">Could not start call recording</string>
+    <string name="recording_save_failed">Could not save call recording</string>
     <string name="default_dialer">Default dialer</string>
     <string name="request_default_dialer">Set as default dialer</string>
     <string name="default_dialer_enabled">Convoy Phone is the default dialer</string>

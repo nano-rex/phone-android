@@ -9,17 +9,22 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.ParcelFileDescriptor;
 import android.widget.Toast;
 
 import org.convoy.phone.R;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class CallRecordingService extends Service {
     public static final String ACTION_START = "org.convoy.phone.action.START_RECORDING";
     public static final String ACTION_STOP = "org.convoy.phone.action.STOP_RECORDING";
     private static final String CHANNEL_ID = "call_recording";
     private MediaRecorder recorder;
-    private ParcelFileDescriptor fileDescriptor;
+    private File tempOutputFile;
+    private String outputDisplayName;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -57,23 +62,21 @@ public class CallRecordingService extends Service {
         if (!AppSettings.isRecordCallsEnabled(this) || recorder != null) {
             return;
         }
-        Uri uri = StorageUtil.createRecordingDocument(this);
-        if (uri == null) {
-            return;
+        outputDisplayName = "call_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".m4a";
+        tempOutputFile = new File(getCacheDir(), outputDisplayName);
+        if (tempOutputFile.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            tempOutputFile.delete();
         }
         for (int source : AppSettings.getMediaRecorderSourceFallbacks(this)) {
             try {
-                fileDescriptor = getContentResolver().openFileDescriptor(uri, "w");
-                if (fileDescriptor == null) {
-                    return;
-                }
                 recorder = new MediaRecorder();
                 recorder.setAudioSource(source);
                 recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
                 recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
                 recorder.setAudioSamplingRate(44100);
                 recorder.setAudioEncodingBitRate(128000);
-                recorder.setOutputFile(fileDescriptor.getFileDescriptor());
+                recorder.setOutputFile(tempOutputFile.getAbsolutePath());
                 recorder.prepare();
                 recorder.start();
                 return;
@@ -85,6 +88,7 @@ public class CallRecordingService extends Service {
     }
 
     private void stopRecording() {
+        boolean hadRecorder = recorder != null;
         if (recorder != null) {
             try {
                 recorder.stop();
@@ -96,13 +100,18 @@ public class CallRecordingService extends Service {
             }
             recorder = null;
         }
-        if (fileDescriptor != null) {
-            try {
-                fileDescriptor.close();
-            } catch (Exception ignored) {
+        if (hadRecorder && tempOutputFile != null && tempOutputFile.exists()) {
+            boolean copied = StorageUtil.copyRecordingToFolder(this, tempOutputFile, outputDisplayName == null ? tempOutputFile.getName() : outputDisplayName);
+            if (!copied) {
+                Toast.makeText(this, R.string.recording_save_failed, Toast.LENGTH_SHORT).show();
             }
-            fileDescriptor = null;
         }
+        if (tempOutputFile != null && tempOutputFile.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            tempOutputFile.delete();
+        }
+        tempOutputFile = null;
+        outputDisplayName = null;
     }
 
     @Override
