@@ -25,6 +25,7 @@ public class ConvoyInCallService extends InCallService {
     public void onCallAdded(Call call) {
         super.onCallAdded(call);
         trackedCalls++;
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_call_added", "onCallAdded state=" + call.getState());
         String number = call.getDetails() != null && call.getDetails().getHandle() != null ? call.getDetails().getHandle().getSchemeSpecificPart() : "";
         if (call.getState() == Call.STATE_RINGING && BlockedNumberStore.isBlocked(this, number)) {
             try {
@@ -41,6 +42,7 @@ public class ConvoyInCallService extends InCallService {
     @Override
     public void onCallRemoved(Call call) {
         super.onCallRemoved(call);
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_call_removed", "onCallRemoved state=" + call.getState());
         try {
             call.unregisterCallback(callCallback);
         } catch (Exception ignored) {
@@ -63,6 +65,7 @@ public class ConvoyInCallService extends InCallService {
     private final Call.Callback callCallback = new Call.Callback() {
         @Override
         public void onStateChanged(Call call, int state) {
+            StorageUtil.writeTimestampedMarkerFile(ConvoyInCallService.this, "debug_call_state", "state=" + state);
             maybeStartRecordingForState(state);
             if (state == Call.STATE_DISCONNECTED && trackedCalls <= 1) {
                 stopRecordingService();

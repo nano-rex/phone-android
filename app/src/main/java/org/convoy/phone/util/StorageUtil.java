@@ -137,4 +137,9 @@ public final class StorageUtil {
             return false;
         }
     }
+
+    public static boolean writeTimestampedMarkerFile(Context context, String prefix, String content) {
+        String name = prefix + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".txt";
+        return writeMarkerFile(context, name, content);
+    }
 }
