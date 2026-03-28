@@ -65,11 +65,43 @@ public abstract class BaseActivity extends Activity {
         if (DialerIntegration.isDefaultDialer(this)) {
             TelecomManager telecomManager = getSystemService(TelecomManager.class);
             if (telecomManager != null) {
+                startManualRecording("dial");
                 telecomManager.placeCall(uri, null);
                 return;
             }
         }
         Toast.makeText(this, R.string.set_default_dialer_to_call, Toast.LENGTH_SHORT).show();
         startActivity(DialerIntegration.createRoleRequestIntent(this));
+    }
+
+    protected void startManualRecording(String source) {
+        if (!AppSettings.isRecordCallsEnabled(this)) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_skip", "source=" + source + " reason=disabled");
+            return;
+        }
+        boolean wrote = StorageUtil.writeMarkerFile(this, "start.txt", "call started");
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_start", "source=" + source + " wroteStart=" + wrote);
+        try {
+            Intent recordingIntent = new Intent(this, CallRecordingService.class);
+            recordingIntent.setAction(CallRecordingService.ACTION_START);
+            recordingIntent.putExtra(CallRecordingService.EXTRA_FORCE_START, true);
+            startForegroundService(recordingIntent);
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=" + source + " started=true");
+        } catch (Exception e) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=" + source + " started=false error=" + String.valueOf(e));
+        }
+    }
+
+    protected void stopManualRecording(String source) {
+        boolean wrote = StorageUtil.writeMarkerFile(this, "end.txt", "call ended");
+        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_stop", "source=" + source + " wroteEnd=" + wrote);
+        try {
+            Intent recordingIntent = new Intent(this, CallRecordingService.class);
+            recordingIntent.setAction(CallRecordingService.ACTION_STOP);
+            startService(recordingIntent);
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=" + source + " started=true");
+        } catch (Exception e) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=" + source + " started=false error=" + String.valueOf(e));
+        }
     }
 }

@@ -11,10 +11,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import org.convoy.phone.R;
-import org.convoy.phone.util.AppSettings;
 import org.convoy.phone.util.BaseActivity;
-import org.convoy.phone.util.CallRecordingService;
-import org.convoy.phone.util.StorageUtil;
 
 public class MainActivity extends BaseActivity {
     private static final int REQ_CALL = 1;
@@ -77,24 +74,6 @@ public class MainActivity extends BaseActivity {
             requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, REQ_CALL);
             return;
         }
-        maybeStartManualRecording();
         dialNumber(number);
-    }
-
-    private void maybeStartManualRecording() {
-        if (!AppSettings.isRecordCallsEnabled(this)) {
-            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_skip", "source=main reason=disabled");
-            return;
-        }
-        boolean wrote = StorageUtil.writeMarkerFile(this, "start.txt", "call started");
-        StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_start", "source=main wroteStart=" + wrote);
-        try {
-            Intent recordingIntent = new Intent(this, CallRecordingService.class);
-            recordingIntent.setAction(CallRecordingService.ACTION_START);
-            startForegroundService(recordingIntent);
-            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=main started=true");
-        } catch (Exception e) {
-            StorageUtil.writeTimestampedMarkerFile(this, "debug_manual_record_service", "source=main started=false error=" + String.valueOf(e));
-        }
     }
 }

@@ -21,6 +21,7 @@ import java.util.Locale;
 public class CallRecordingService extends Service {
     public static final String ACTION_START = "org.convoy.phone.action.START_RECORDING";
     public static final String ACTION_STOP = "org.convoy.phone.action.STOP_RECORDING";
+    public static final String EXTRA_FORCE_START = "force_start";
     private static final String CHANNEL_ID = "call_recording";
     private MediaRecorder recorder;
     private File tempOutputFile;
@@ -35,7 +36,7 @@ public class CallRecordingService extends Service {
         String action = intent.getAction();
         if (ACTION_START.equals(action)) {
             startForeground(1, buildNotification());
-            startRecording();
+            startRecording(intent.getBooleanExtra(EXTRA_FORCE_START, false));
         } else if (ACTION_STOP.equals(action)) {
             stopRecording();
             stopForeground(STOP_FOREGROUND_REMOVE);
@@ -59,8 +60,8 @@ public class CallRecordingService extends Service {
                 .build();
     }
 
-    private void startRecording() {
-        if (!AppSettings.isRecordCallsEnabled(this) || recorder != null) {
+    private void startRecording(boolean forceStart) {
+        if ((!forceStart && !AppSettings.isRecordCallsEnabled(this)) || recorder != null) {
             return;
         }
         outputDisplayName = "call_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".m4a";
