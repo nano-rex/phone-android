@@ -26,7 +26,7 @@ public final class AppSettings {
     }
 
     public static void setDarkMode(Context context, boolean value) {
-        prefs(context).edit().putBoolean(KEY_DARK_MODE, value).apply();
+        prefs(context).edit().putBoolean(KEY_DARK_MODE, value).commit();
     }
 
     public static boolean isRecordCallsEnabled(Context context) {
@@ -34,7 +34,7 @@ public final class AppSettings {
     }
 
     public static void setRecordCallsEnabled(Context context, boolean value) {
-        prefs(context).edit().putBoolean(KEY_RECORD_CALLS, value).apply();
+        prefs(context).edit().putBoolean(KEY_RECORD_CALLS, value).commit();
     }
 
     public static String getRecordingSource(Context context) {
@@ -42,7 +42,7 @@ public final class AppSettings {
     }
 
     public static void setRecordingSource(Context context, String value) {
-        prefs(context).edit().putString(KEY_RECORDING_SOURCE, value).apply();
+        prefs(context).edit().putString(KEY_RECORDING_SOURCE, value).commit();
     }
 
     public static Uri getRecordingsTreeUri(Context context) {
@@ -51,7 +51,7 @@ public final class AppSettings {
     }
 
     public static void setRecordingsTreeUri(Context context, Uri uri) {
-        prefs(context).edit().putString(KEY_RECORDINGS_TREE_URI, uri == null ? null : uri.toString()).apply();
+        prefs(context).edit().putString(KEY_RECORDINGS_TREE_URI, uri == null ? null : uri.toString()).commit();
     }
 
     public static int getMediaRecorderSource(Context context) {
