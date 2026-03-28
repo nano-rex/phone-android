@@ -1,9 +1,11 @@
 package org.convoy.phone.activities;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.Editable;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 import org.convoy.phone.R;
 import org.convoy.phone.model.ContactItem;
 import org.convoy.phone.util.BaseActivity;
+import org.convoy.phone.util.BlockedNumberStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +40,7 @@ public class ContactsActivity extends BaseActivity {
         listView.setAdapter(adapter);
         listView.setOnItemClickListener((parent, view, position, id) -> dialNumber(filteredContacts.get(position).number));
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            shareToClipboard(getString(R.string.copy_number), filteredContacts.get(position).number);
-            Toast.makeText(this, R.string.copy_number, Toast.LENGTH_SHORT).show();
+            showContactActions(filteredContacts.get(position));
             return true;
         });
 
@@ -58,6 +60,36 @@ public class ContactsActivity extends BaseActivity {
         loadContacts();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadContacts();
+    }
+
+    private void showContactActions(ContactItem item) {
+        boolean blocked = BlockedNumberStore.isBlocked(this, item.number);
+        String[] actions = new String[]{getString(R.string.call), getString(R.string.edit_contact), getString(R.string.copy_number), blocked ? getString(R.string.unblock_number) : getString(R.string.block_number)};
+        new AlertDialog.Builder(this)
+                .setTitle(item.name)
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) {
+                        dialNumber(item.number);
+                    } else if (which == 1) {
+                        Intent intent = new Intent(Intent.ACTION_EDIT);
+                        intent.setDataAndType(item.contactUri, ContactsContract.Contacts.CONTENT_ITEM_TYPE);
+                        intent.putExtra("finishActivityOnSaveCompleted", true);
+                        startActivity(intent);
+                    } else if (which == 2) {
+                        shareToClipboard(getString(R.string.copy_number), item.number);
+                        Toast.makeText(this, R.string.copy_number, Toast.LENGTH_SHORT).show();
+                    } else {
+                        BlockedNumberStore.setBlocked(this, item.number, !blocked);
+                        Toast.makeText(this, blocked ? R.string.unblock_number : R.string.block_number, Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
+    }
+
     private void loadContacts() {
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, REQ_CONTACTS);
@@ -65,11 +97,13 @@ public class ContactsActivity extends BaseActivity {
         }
         allContacts.clear();
         try (Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER},
+                new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.CONTACT_ID},
                 null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC")) {
             if (cursor != null) {
                 while (cursor.moveToNext()) {
-                    allContacts.add(new ContactItem(cursor.getString(0), cursor.getString(1)));
+                    long contactId = cursor.getLong(2);
+                    Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, String.valueOf(contactId));
+                    allContacts.add(new ContactItem(cursor.getString(0), cursor.getString(1), uri));
                 }
             }
         }

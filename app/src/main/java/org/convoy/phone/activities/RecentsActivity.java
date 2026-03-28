@@ -1,6 +1,7 @@
 package org.convoy.phone.activities;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import org.convoy.phone.R;
 import org.convoy.phone.model.RecentCallItem;
 import org.convoy.phone.util.BaseActivity;
+import org.convoy.phone.util.BlockedNumberStore;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,11 +35,35 @@ public class RecentsActivity extends BaseActivity {
         listView.setAdapter(adapter);
         listView.setOnItemClickListener((parent, view, position, id) -> dialNumber(items.get(position).number));
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            shareToClipboard(getString(R.string.copy_number), items.get(position).number);
-            Toast.makeText(this, R.string.copy_number, Toast.LENGTH_SHORT).show();
+            showRecentActions(items.get(position));
             return true;
         });
         loadRecents();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadRecents();
+    }
+
+    private void showRecentActions(RecentCallItem item) {
+        boolean blocked = BlockedNumberStore.isBlocked(this, item.number);
+        String[] actions = new String[]{getString(R.string.call), getString(R.string.copy_number), blocked ? getString(R.string.unblock_number) : getString(R.string.block_number)};
+        new AlertDialog.Builder(this)
+                .setTitle(item.name)
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) {
+                        dialNumber(item.number);
+                    } else if (which == 1) {
+                        shareToClipboard(getString(R.string.copy_number), item.number);
+                        Toast.makeText(this, R.string.copy_number, Toast.LENGTH_SHORT).show();
+                    } else {
+                        BlockedNumberStore.setBlocked(this, item.number, !blocked);
+                        Toast.makeText(this, blocked ? R.string.unblock_number : R.string.block_number, Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
     }
 
     private void loadRecents() {

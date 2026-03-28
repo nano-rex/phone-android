@@ -3,8 +3,8 @@ package org.convoy.phone.util;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.convoy.phone.R;
 import org.convoy.phone.activities.ContactsActivity;
@@ -45,6 +45,10 @@ public abstract class BaseActivity extends Activity {
     }
 
     protected void dialNumber(String number) {
+        if (BlockedNumberStore.isBlocked(this, number)) {
+            Toast.makeText(this, R.string.number_is_blocked, Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(Intent.ACTION_CALL, android.net.Uri.parse("tel:" + android.net.Uri.encode(number)));
         startActivity(intent);
     }

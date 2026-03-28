@@ -18,6 +18,11 @@
         android:roundIcon="@drawable/ic_launcher_foreground"
         android:supportsRtl="true">
 
+        <activity android:name=".activities.CallActivity"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true" />
         <activity android:name=".activities.SettingsActivity" />
         <activity android:name=".activities.RecordingsActivity" />
         <activity android:name=".activities.RecentsActivity" />
@@ -45,7 +50,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.telecom.IN_CALL_SERVICE_UI"
-                android:value="false" />
+                android:value="true" />
             <meta-data
                 android:name="android.telecom.IN_CALL_SERVICE_RINGING"
                 android:value="true" />
