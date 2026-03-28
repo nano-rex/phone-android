@@ -2,7 +2,6 @@ package org.convoy.phone.helpers
 
 import org.fossify.commons.helpers.TAB_CALL_HISTORY
 import org.fossify.commons.helpers.TAB_CONTACTS
-import org.fossify.commons.helpers.TAB_FAVORITES
 
 // shared prefs
 const val SPEED_DIAL = "speed_dial"
@@ -26,9 +25,9 @@ const val CALL_RECORDING_FOLDER_URI = "call_recording_folder_uri"
 const val RECORDING_SOURCE_ENVIRONMENT = "environment"
 const val RECORDING_SOURCE_DEVICE = "device"
 
-const val ALL_TABS_MASK = TAB_CONTACTS or TAB_FAVORITES or TAB_CALL_HISTORY
+const val ALL_TABS_MASK = TAB_CONTACTS or TAB_CALL_HISTORY
 
-val tabsList = arrayListOf(TAB_CONTACTS, TAB_FAVORITES, TAB_CALL_HISTORY)
+val tabsList = arrayListOf(TAB_CONTACTS, TAB_CALL_HISTORY)
 
 private const val PATH = "org.convoy.phone.action."
 const val ACCEPT_CALL = PATH + "ACCEPT_CALL"

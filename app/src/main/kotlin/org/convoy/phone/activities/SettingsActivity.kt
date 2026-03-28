@@ -34,7 +34,6 @@ import org.fossify.commons.helpers.ON_CLICK_CALL_CONTACT
 import org.fossify.commons.helpers.ON_CLICK_VIEW_CONTACT
 import org.fossify.commons.helpers.TAB_CALL_HISTORY
 import org.fossify.commons.helpers.TAB_CONTACTS
-import org.fossify.commons.helpers.TAB_FAVORITES
 import org.fossify.commons.helpers.TAB_LAST_USED
 import org.fossify.commons.helpers.isNougatPlus
 import org.fossify.commons.helpers.isQPlus
@@ -42,8 +41,6 @@ import org.fossify.commons.helpers.isTiramisuPlus
 import org.fossify.commons.models.RadioItem
 import org.convoy.phone.R
 import org.convoy.phone.databinding.ActivitySettingsBinding
-import org.convoy.phone.dialogs.ExportCallHistoryDialog
-import org.convoy.phone.dialogs.ManageVisibleTabsDialog
 import org.convoy.phone.extensions.canLaunchAccountsConfiguration
 import org.convoy.phone.extensions.config
 import org.convoy.phone.extensions.launchAccountsConfiguration
@@ -56,33 +53,9 @@ import kotlin.system.exitProcess
 
 class SettingsActivity : SimpleActivity() {
     companion object {
-        private const val CALL_HISTORY_FILE_TYPE = "application/json"
-        private val IMPORT_CALL_HISTORY_FILE_TYPES = buildList {
-            add("application/json")
-            if (!isQPlus()) {
-                // Workaround for https://github.com/FossifyOrg/Messages/issues/88
-                add("application/octet-stream")
-            }
-        }
     }
 
     private val binding by viewBinding(ActivitySettingsBinding::inflate)
-    private val getContent =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) {
-                toast(R.string.importing)
-                importCallHistory(uri)
-            }
-        }
-
-    private val saveDocument = registerForActivityResult(ActivityResultContracts.CreateDocument(CALL_HISTORY_FILE_TYPE)) { uri ->
-        if (uri != null) {
-            toast(R.string.exporting)
-            RecentsHelper(this).getRecentCalls(queryLimit = Int.MAX_VALUE) { recents ->
-                exportCallHistory(recents, uri)
-            }
-        }
-    }
     private val requestRecordAudioPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (!granted) {
             config.callRecordingEnabled = false
@@ -313,18 +286,11 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupManageShownTabs() {
-        binding.settingsManageTabsHolder.setOnClickListener {
-            ManageVisibleTabsDialog(this)
-        }
-    }
-
     private fun setupDefaultTab() {
         binding.settingsDefaultTab.text = getDefaultTabText()
         binding.settingsDefaultTabHolder.setOnClickListener {
             val items = arrayListOf(
                 RadioItem(TAB_CONTACTS, getString(R.string.contacts_tab)),
-                RadioItem(TAB_FAVORITES, getString(R.string.favorites_tab)),
                 RadioItem(TAB_CALL_HISTORY, getString(R.string.call_history_tab)),
                 RadioItem(TAB_LAST_USED, getString(R.string.last_used_tab))
             )
@@ -339,7 +305,6 @@ class SettingsActivity : SimpleActivity() {
     private fun getDefaultTabText() = getString(
         when (baseConfig.defaultTab) {
             TAB_CONTACTS -> R.string.contacts_tab
-            TAB_FAVORITES -> R.string.favorites_tab
             TAB_CALL_HISTORY -> R.string.call_history_tab
             else -> R.string.last_used_tab
         }
@@ -475,60 +440,4 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupCallsExport() {
-        binding.settingsExportCallsHolder.setOnClickListener {
-            ExportCallHistoryDialog(this) { filename ->
-                saveDocument.launch("$filename.json")
-            }
-        }
-    }
-
-    private fun setupCallsImport() {
-        binding.settingsImportCallsHolder.setOnClickListener {
-            getContent.launch(IMPORT_CALL_HISTORY_FILE_TYPES.toTypedArray())
-        }
-    }
-
-    private fun importCallHistory(uri: Uri) {
-        try {
-            val jsonString = contentResolver.openInputStream(uri)!!.use { inputStream ->
-                inputStream.bufferedReader().readText()
-            }
-
-            val objects = Json.decodeFromString<List<RecentCall>>(jsonString)
-
-            if (objects.isEmpty()) {
-                toast(R.string.no_entries_for_importing)
-                return
-            }
-
-            RecentsHelper(this).restoreRecentCalls(this, objects) {
-                toast(R.string.importing_successful)
-            }
-        } catch (_: SerializationException) {
-            toast(R.string.invalid_file_format)
-        } catch (_: IllegalArgumentException) {
-            toast(R.string.invalid_file_format)
-        } catch (e: Exception) {
-            showErrorToast(e)
-        }
-    }
-
-    private fun exportCallHistory(recents: List<RecentCall>, uri: Uri) {
-        if (recents.isEmpty()) {
-            toast(R.string.no_entries_for_exporting)
-        } else {
-            try {
-                val outputStream = contentResolver.openOutputStream(uri)!!
-
-                val jsonString = Json.encodeToString(recents)
-                outputStream.use {
-                    it.write(jsonString.toByteArray())
-                }
-                toast(R.string.exporting_successful)
-            } catch (e: Exception) {
-                showErrorToast(e)
-            }
-        }
-    }
 }
