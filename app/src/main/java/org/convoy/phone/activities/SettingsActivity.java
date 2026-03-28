@@ -8,16 +8,17 @@ import android.os.Bundle;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.convoy.phone.R;
 import org.convoy.phone.util.AppSettings;
 import org.convoy.phone.util.BaseActivity;
+import org.convoy.phone.util.DialerIntegration;
 
 public class SettingsActivity extends BaseActivity {
     private static final int REQ_FOLDER = 4;
     private static final int REQ_AUDIO = 5;
     private TextView folderStatus;
+    private TextView defaultDialerStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +26,7 @@ public class SettingsActivity extends BaseActivity {
         setContentView(R.layout.activity_settings);
         bindBottomNav(R.id.tab_settings);
         folderStatus = findViewById(R.id.folder_status);
+        defaultDialerStatus = findViewById(R.id.default_dialer_status);
 
         Switch darkMode = findViewById(R.id.dark_mode_switch);
         darkMode.setChecked(AppSettings.isDarkMode(this));
@@ -48,7 +50,15 @@ public class SettingsActivity extends BaseActivity {
                 checkedId == R.id.source_device ? AppSettings.SOURCE_DEVICE : AppSettings.SOURCE_ENVIRONMENT));
 
         findViewById(R.id.choose_folder_button).setOnClickListener(v -> openFolderPicker());
+        findViewById(R.id.request_default_dialer_button).setOnClickListener(v -> startActivityForResult(DialerIntegration.createRoleRequestIntent(this), DialerIntegration.REQ_DEFAULT_DIALER));
         updateFolderStatus();
+        updateDialerStatus();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateDialerStatus();
     }
 
     private void openFolderPicker() {
@@ -66,9 +76,18 @@ public class SettingsActivity extends BaseActivity {
             AppSettings.setRecordingsTreeUri(this, uri);
             updateFolderStatus();
         }
+        if (requestCode == DialerIntegration.REQ_DEFAULT_DIALER) {
+            updateDialerStatus();
+        }
     }
 
     private void updateFolderStatus() {
         folderStatus.setText(AppSettings.getRecordingsTreeUri(this) == null ? R.string.folder_not_set : R.string.folder_set);
+    }
+
+    private void updateDialerStatus() {
+        defaultDialerStatus.setText(DialerIntegration.isDefaultDialer(this)
+                ? R.string.default_dialer_enabled
+                : R.string.default_dialer_disabled);
     }
 }

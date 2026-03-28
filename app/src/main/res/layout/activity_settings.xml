@@ -9,6 +9,11 @@
         android:padding="16dp">
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings" android:textSize="24sp" android:textStyle="bold" />
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/default_dialer" android:layout_marginTop="12dp" />
+        <TextView android:id="@+id/default_dialer_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" />
+        <Button android:id="@+id/request_default_dialer_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/request_default_dialer" android:layout_marginTop="8dp" />
+
         <Switch android:id="@+id/dark_mode_switch" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/dark_mode" android:layout_marginTop="12dp" />
         <Switch android:id="@+id/record_calls_switch" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/record_calls" android:layout_marginTop="12dp" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/recording_source" android:layout_marginTop="12dp" />

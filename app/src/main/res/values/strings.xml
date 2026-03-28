@@ -31,4 +31,8 @@
     <string name="empty_number">Enter a number first</string>
     <string name="recording_service_channel">Call recording</string>
     <string name="recording_service_active">Recording call audio</string>
+    <string name="default_dialer">Default dialer</string>
+    <string name="request_default_dialer">Set as default dialer</string>
+    <string name="default_dialer_enabled">Convoy Phone is the default dialer</string>
+    <string name="default_dialer_disabled">Convoy Phone is not the default dialer</string>
 </resources>
