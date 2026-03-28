@@ -25,6 +25,7 @@ public class CallRecordingService extends Service {
     private MediaRecorder recorder;
     private File tempOutputFile;
     private String outputDisplayName;
+    private Integer activeSource;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -70,6 +71,7 @@ public class CallRecordingService extends Service {
         }
         for (int source : AppSettings.getMediaRecorderSourceFallbacks(this)) {
             try {
+                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_attempt", "source=" + source + " file=" + outputDisplayName);
                 recorder = new MediaRecorder();
                 recorder.setAudioSource(source);
                 recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -78,9 +80,13 @@ public class CallRecordingService extends Service {
                 recorder.setAudioEncodingBitRate(128000);
                 recorder.setOutputFile(tempOutputFile.getAbsolutePath());
                 recorder.prepare();
+                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_prepare_ok", "source=" + source);
                 recorder.start();
+                activeSource = source;
+                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_start_ok", "source=" + source);
                 return;
             } catch (Exception e) {
+                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_start_fail", "source=" + source + " error=" + String.valueOf(e));
                 stopRecording();
             }
         }
@@ -92,7 +98,9 @@ public class CallRecordingService extends Service {
         if (recorder != null) {
             try {
                 recorder.stop();
+                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_stop_ok", "source=" + String.valueOf(activeSource));
             } catch (Exception ignored) {
+                StorageUtil.writeTimestampedMarkerFile(this, "debug_record_stop_fail", "source=" + String.valueOf(activeSource) + " error=" + String.valueOf(ignored));
             }
             try {
                 recorder.release();
@@ -102,6 +110,8 @@ public class CallRecordingService extends Service {
         }
         if (hadRecorder && tempOutputFile != null && tempOutputFile.exists()) {
             boolean copied = StorageUtil.copyRecordingToFolder(this, tempOutputFile, outputDisplayName == null ? tempOutputFile.getName() : outputDisplayName);
+            StorageUtil.writeTimestampedMarkerFile(this, copied ? "debug_record_copy_ok" : "debug_record_copy_fail",
+                    "source=" + String.valueOf(activeSource) + " size=" + tempOutputFile.length());
             if (!copied) {
                 Toast.makeText(this, R.string.recording_save_failed, Toast.LENGTH_SHORT).show();
             }
@@ -112,6 +122,7 @@ public class CallRecordingService extends Service {
         }
         tempOutputFile = null;
         outputDisplayName = null;
+        activeSource = null;
     }
 
     @Override
