@@ -65,7 +65,10 @@ public class ConvoyInCallService extends InCallService {
     private final Call.Callback callCallback = new Call.Callback() {
         @Override
         public void onStateChanged(Call call, int state) {
-            StorageUtil.writeTimestampedMarkerFile(ConvoyInCallService.this, "debug_call_state", "state=" + state);
+            StorageUtil.writeTimestampedMarkerFile(
+                    ConvoyInCallService.this,
+                    "debug_call_state",
+                    "state=" + state + " recordEnabled=" + AppSettings.isRecordCallsEnabled(ConvoyInCallService.this));
             maybeStartRecordingForState(state);
             if (state == Call.STATE_DISCONNECTED && trackedCalls <= 1) {
                 stopRecordingService();
@@ -74,10 +77,13 @@ public class ConvoyInCallService extends InCallService {
     };
 
     private void maybeStartRecordingForState(int state) {
-        if (!AppSettings.isRecordCallsEnabled(this)) {
+        boolean recordEnabled = AppSettings.isRecordCallsEnabled(this);
+        if (!recordEnabled) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_record_skip", "reason=disabled state=" + state);
             return;
         }
         if (state == Call.STATE_ACTIVE || state == Call.STATE_DIALING || state == Call.STATE_CONNECTING) {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_record_trigger", "state=" + state);
             if (!wroteStartMarker) {
                 StorageUtil.writeMarkerFile(this, "start.txt", "call started");
                 wroteStartMarker = true;
@@ -85,6 +91,8 @@ public class ConvoyInCallService extends InCallService {
             Intent recordingIntent = new Intent(this, CallRecordingService.class);
             recordingIntent.setAction(CallRecordingService.ACTION_START);
             startForegroundService(recordingIntent);
+        } else {
+            StorageUtil.writeTimestampedMarkerFile(this, "debug_record_skip", "reason=state state=" + state);
         }
     }
 
