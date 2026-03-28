@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.text.format.DateFormat;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -72,11 +73,15 @@ public class RecentsActivity extends BaseActivity {
             return;
         }
         items.clear();
-        try (Cursor cursor = getContentResolver().query(CallLog.Calls.CONTENT_URI,
+        try (Cursor cursor = getContentResolver().query(
+                CallLog.Calls.CONTENT_URI,
                 new String[]{CallLog.Calls.CACHED_NAME, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.TYPE, CallLog.Calls.DURATION},
-                null, null, CallLog.Calls.DATE + " DESC LIMIT 100")) {
+                null,
+                null,
+                CallLog.Calls.DATE + " DESC")) {
             if (cursor != null) {
-                while (cursor.moveToNext()) {
+                int count = 0;
+                while (cursor.moveToNext() && count < 100) {
                     String name = cursor.getString(0);
                     String number = cursor.getString(1);
                     long date = cursor.getLong(2);
@@ -84,10 +89,25 @@ public class RecentsActivity extends BaseActivity {
                     long duration = cursor.getLong(4);
                     String detail = DateFormat.format("yyyy-MM-dd HH:mm", new Date(date)) + "  type=" + type + "  duration=" + duration + "s";
                     items.add(new RecentCallItem(name == null || name.isEmpty() ? number : name, number, detail));
+                    count++;
                 }
             }
+        } catch (Exception e) {
+            Toast.makeText(this, e.getMessage() == null ? getString(R.string.failed_to_load_recents) : e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         adapter.notifyDataSetChanged();
-        findViewById(R.id.empty_recents).setVisibility(items.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
+        findViewById(R.id.empty_recents).setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_CALL_LOG) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                loadRecents();
+            } else {
+                Toast.makeText(this, R.string.permission_required, Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

@@ -35,6 +35,7 @@
     <string name="request_default_dialer">Set as default dialer</string>
     <string name="default_dialer_enabled">Convoy Phone is the default dialer</string>
     <string name="default_dialer_disabled">Convoy Phone is not the default dialer</string>
+    <string name="set_default_dialer_to_call">Set Convoy Phone as the default dialer to place calls here</string>
     <string name="edit_contact">Edit contact</string>
     <string name="block_number">Block number</string>
     <string name="unblock_number">Unblock number</string>
@@ -63,4 +64,5 @@
     <string name="add_favorite">Add favorite</string>
     <string name="remove_favorite">Remove favorite</string>
     <string name="unknown_contact">Unknown contact</string>
+    <string name="failed_to_load_recents">Failed to load recent calls</string>
 </resources>

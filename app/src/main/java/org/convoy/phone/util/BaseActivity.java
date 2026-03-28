@@ -2,7 +2,9 @@ package org.convoy.phone.util;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.telecom.TelecomManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -49,7 +51,15 @@ public abstract class BaseActivity extends Activity {
             Toast.makeText(this, R.string.number_is_blocked, Toast.LENGTH_SHORT).show();
             return;
         }
-        Intent intent = new Intent(Intent.ACTION_CALL, android.net.Uri.parse("tel:" + android.net.Uri.encode(number)));
-        startActivity(intent);
+        Uri uri = Uri.parse("tel:" + Uri.encode(number));
+        if (DialerIntegration.isDefaultDialer(this)) {
+            TelecomManager telecomManager = getSystemService(TelecomManager.class);
+            if (telecomManager != null) {
+                telecomManager.placeCall(uri, null);
+                return;
+            }
+        }
+        Toast.makeText(this, R.string.set_default_dialer_to_call, Toast.LENGTH_SHORT).show();
+        startActivity(DialerIntegration.createRoleRequestIntent(this));
     }
 }

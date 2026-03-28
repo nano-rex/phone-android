@@ -1,6 +1,5 @@
 package org.convoy.phone.activities;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,9 +10,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.convoy.phone.R;
+import org.convoy.phone.util.BaseActivity;
 import org.convoy.phone.util.BlockedNumberStore;
 
-public class ContactDetailActivity extends Activity {
+public class ContactDetailActivity extends BaseActivity {
     public static final String EXTRA_CONTACT_ID = "contact_id";
     public static final String EXTRA_CONTACT_URI = "contact_uri";
     public static final String EXTRA_NAME = "name";
@@ -47,7 +47,7 @@ public class ContactDetailActivity extends Activity {
         favoriteButton = findViewById(R.id.contact_detail_favorite);
         blockButton = findViewById(R.id.contact_detail_block);
 
-        findViewById(R.id.contact_detail_call).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + Uri.encode(number)))));
+        findViewById(R.id.contact_detail_call).setOnClickListener(v -> dialNumber(number));
         findViewById(R.id.contact_detail_copy).setOnClickListener(v -> {
             android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             clipboard.setPrimaryClip(android.content.ClipData.newPlainText(getString(R.string.copy_number), number));
