@@ -51,4 +51,7 @@
     <string name="call_state_disconnected">Disconnected</string>
     <string name="call_state_unknown">Call</string>
     <string name="number_is_blocked">Number is blocked</string>
+    <string name="audio_route_unavailable">Audio controls unavailable</string>
+    <string name="speaker_off">Speaker off</string>
+    <string name="unmute">Unmute</string>
 </resources>

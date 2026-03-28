@@ -5,9 +5,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.telecom.Call;
-import android.telecom.CallAudioState;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.convoy.phone.R;
 import org.convoy.phone.util.CallController;
@@ -65,17 +65,16 @@ public class CallActivity extends Activity {
             finish();
         });
         muteButton.setOnClickListener(v -> {
-            Call call = CallController.getCurrentCall();
-            if (call != null && CallController.getCurrentAudioState() != null) {
-                boolean next = !CallController.getCurrentAudioState().isMuted();
-                if (call.getDetails() != null) {
-                    // mute handled by InCallService via activity action bridge later; for now this is visual no-op if unsupported
-                }
-                stateView.setText(stateView.getText() + (next ? " / mute requested" : " / unmute requested"));
+            if (!CallController.toggleMute()) {
+                Toast.makeText(this, R.string.audio_route_unavailable, Toast.LENGTH_SHORT).show();
             }
+            refreshUi();
         });
         speakerButton.setOnClickListener(v -> {
-            stateView.setText(stateView.getText() + " / speaker requested");
+            if (!CallController.toggleSpeaker()) {
+                Toast.makeText(this, R.string.audio_route_unavailable, Toast.LENGTH_SHORT).show();
+            }
+            refreshUi();
         });
     }
 
@@ -100,14 +99,18 @@ public class CallActivity extends Activity {
             return;
         }
         String handle = call.getDetails() != null && call.getDetails().getHandle() != null ? call.getDetails().getHandle().getSchemeSpecificPart() : "Unknown";
-        nameView.setText(handle == null || handle.isEmpty() ? "Unknown" : handle);
+        if (handle == null || handle.isEmpty()) {
+            handle = "Unknown";
+        }
+        nameView.setText(handle);
         int state = call.getState();
         boolean ringing = state == Call.STATE_RINGING;
-        nameView.setText(handle);
         stateView.setText(stateLabel(state));
         answerButton.setVisibility(ringing ? android.view.View.VISIBLE : android.view.View.GONE);
         declineButton.setVisibility(ringing ? android.view.View.VISIBLE : android.view.View.GONE);
         endButton.setVisibility(ringing ? android.view.View.GONE : android.view.View.VISIBLE);
+        muteButton.setText(CallController.isMuted() ? R.string.unmute : R.string.mute);
+        speakerButton.setText(CallController.isSpeakerOn() ? R.string.speaker_off : R.string.speaker);
     }
 
     private String stateLabel(int state) {

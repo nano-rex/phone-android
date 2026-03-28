@@ -7,6 +7,18 @@ import android.telecom.InCallService;
 
 public class ConvoyInCallService extends InCallService {
     @Override
+    public void onCreate() {
+        super.onCreate();
+        CallController.setInCallService(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        CallController.clearInCallService(this);
+        super.onDestroy();
+    }
+
+    @Override
     public void onCallAdded(Call call) {
         super.onCallAdded(call);
         String number = call.getDetails() != null && call.getDetails().getHandle() != null ? call.getDetails().getHandle().getSchemeSpecificPart() : "";
@@ -18,9 +30,9 @@ public class ConvoyInCallService extends InCallService {
             return;
         }
         CallController.setCurrentCall(this, call);
-        Intent recordingIntent = new Intent(this, CallRecordingService.class);
-        recordingIntent.setAction(CallRecordingService.ACTION_START);
         if (AppSettings.isRecordCallsEnabled(this)) {
+            Intent recordingIntent = new Intent(this, CallRecordingService.class);
+            recordingIntent.setAction(CallRecordingService.ACTION_START);
             startForegroundService(recordingIntent);
         }
     }
