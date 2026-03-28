@@ -8,8 +8,6 @@ import android.view.Menu
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import org.fossify.commons.activities.ManageBlockedNumbersActivity
 import org.fossify.commons.dialogs.ChangeDateTimeFormatDialog
 import org.fossify.commons.dialogs.FeatureLockedDialog
@@ -21,7 +19,6 @@ import org.fossify.commons.extensions.beVisibleIf
 import org.fossify.commons.extensions.getFontSizeText
 import org.fossify.commons.extensions.getProperPrimaryColor
 import org.fossify.commons.extensions.isOrWasThankYouInstalled
-import org.fossify.commons.extensions.showErrorToast
 import org.fossify.commons.extensions.toast
 import org.fossify.commons.extensions.updateTextColors
 import org.fossify.commons.extensions.viewBinding
@@ -36,7 +33,6 @@ import org.fossify.commons.helpers.TAB_CALL_HISTORY
 import org.fossify.commons.helpers.TAB_CONTACTS
 import org.fossify.commons.helpers.TAB_LAST_USED
 import org.fossify.commons.helpers.isNougatPlus
-import org.fossify.commons.helpers.isQPlus
 import org.fossify.commons.helpers.isTiramisuPlus
 import org.fossify.commons.models.RadioItem
 import org.convoy.phone.R
@@ -44,10 +40,8 @@ import org.convoy.phone.databinding.ActivitySettingsBinding
 import org.convoy.phone.extensions.canLaunchAccountsConfiguration
 import org.convoy.phone.extensions.config
 import org.convoy.phone.extensions.launchAccountsConfiguration
-import org.convoy.phone.helpers.RecentsHelper
 import org.convoy.phone.helpers.RECORDING_SOURCE_DEVICE
 import org.convoy.phone.helpers.RECORDING_SOURCE_ENVIRONMENT
-import org.convoy.phone.models.RecentCall
 import java.util.Locale
 import kotlin.system.exitProcess
 

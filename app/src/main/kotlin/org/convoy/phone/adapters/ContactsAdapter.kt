@@ -2,8 +2,6 @@ package org.convoy.phone.adapters
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.pm.ShortcutInfo
-import android.graphics.drawable.Icon
 import android.net.Uri
 import android.text.TextUtils
 import android.util.TypedValue
@@ -92,8 +90,6 @@ class ContactsAdapter(
             findItem(R.id.cab_remove_default_sim).isVisible = isOneItemSelected && (activity.config.getCustomSIM(selectedNumber) ?: "") != ""
 
             findItem(R.id.cab_delete).isVisible = showDeleteButton
-            findItem(R.id.cab_create_shortcut).title = activity.addLockedLabelIfNeeded(R.string.create_shortcut)
-            findItem(R.id.cab_create_shortcut).isVisible = isOneItemSelected && isOreoPlus()
             findItem(R.id.cab_view_details).isVisible = isOneItemSelected
             findItem(R.id.cab_block_unblock_contact).isVisible = isOneItemSelected && isNougatPlus()
             getCabBlockContactTitle { title ->
@@ -115,7 +111,6 @@ class ContactsAdapter(
             R.id.cab_delete -> askConfirmDelete()
             R.id.cab_send_sms -> sendSMS()
             R.id.cab_view_details -> viewContactDetails()
-            R.id.cab_create_shortcut -> tryCreateShortcut()
             R.id.cab_select_all -> selectAll()
         }
     }
@@ -314,40 +309,6 @@ class ContactsAdapter(
 
     private fun getSelectedPhoneNumber(): String? {
         return getSelectedItems().firstOrNull()?.getPrimaryNumber()
-    }
-
-    private fun tryCreateShortcut() {
-        if (activity.isOrWasThankYouInstalled()) {
-            createShortcut()
-        } else {
-            FeatureLockedDialog(activity) { }
-        }
-    }
-
-    @SuppressLint("NewApi")
-    private fun createShortcut() {
-        val contact = contacts.firstOrNull { selectedKeys.contains(it.rawId) } ?: return
-        val manager = activity.shortcutManager
-        if (manager.isRequestPinShortcutSupported) {
-            SimpleContactsHelper(activity).getShortcutImage(contact.photoUri, contact.getNameToDisplay()) { image ->
-                activity.runOnUiThread {
-                    activity.handlePermission(PERMISSION_CALL_PHONE) { hasPermission ->
-                        val action = if (hasPermission) Intent.ACTION_CALL else Intent.ACTION_DIAL
-                        val intent = Intent(action).apply {
-                            data = Uri.fromParts("tel", getSelectedPhoneNumber(), null)
-                        }
-
-                        val shortcut = ShortcutInfo.Builder(activity, contact.hashCode().toString())
-                            .setShortLabel(contact.getNameToDisplay())
-                            .setIcon(Icon.createWithBitmap(image))
-                            .setIntent(intent)
-                            .build()
-
-                        manager.requestPinShortcut(shortcut, null)
-                    }
-                }
-            }
-        }
     }
 
     override fun onViewRecycled(holder: ViewHolder) {

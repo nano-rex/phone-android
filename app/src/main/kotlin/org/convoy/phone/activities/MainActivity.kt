@@ -3,10 +3,7 @@ package org.convoy.phone.activities
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.ShortcutInfo
 import android.content.res.Configuration
-import android.graphics.drawable.Icon
-import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
@@ -137,7 +134,6 @@ class MainActivity : SimpleActivity() {
             }
         }
 
-        checkShortcuts()
         Handler().postDelayed({
             getRecentsFragment()?.refreshItems()
         }, 2000)
@@ -245,37 +241,6 @@ class MainActivity : SimpleActivity() {
                 }
             }
         }
-    }
-
-    @SuppressLint("NewApi")
-    private fun checkShortcuts() {
-        val appIconColor = config.appIconColor
-        if (isNougatMR1Plus() && config.lastHandledShortcutColor != appIconColor) {
-            val launchDialpad = getLaunchDialpadShortcut(appIconColor)
-
-            try {
-                shortcutManager.dynamicShortcuts = listOf(launchDialpad)
-                config.lastHandledShortcutColor = appIconColor
-            } catch (ignored: Exception) {
-            }
-        }
-    }
-
-    @SuppressLint("NewApi")
-    private fun getLaunchDialpadShortcut(appIconColor: Int): ShortcutInfo {
-        val newEvent = getString(R.string.dialpad)
-        val drawable = resources.getDrawable(R.drawable.shortcut_dialpad)
-        (drawable as LayerDrawable).findDrawableByLayerId(R.id.shortcut_dialpad_background).applyColorFilter(appIconColor)
-        val bmp = drawable.convertToBitmap()
-
-        val intent = Intent(this, DialpadActivity::class.java)
-        intent.action = Intent.ACTION_VIEW
-        return ShortcutInfo.Builder(this, "launch_dialpad")
-            .setShortLabel(newEvent)
-            .setLongLabel(newEvent)
-            .setIcon(Icon.createWithBitmap(bmp))
-            .setIntent(intent)
-            .build()
     }
 
     private fun getSelectedTabDrawableIds(): List<Int> {
