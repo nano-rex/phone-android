@@ -1,10 +1,15 @@
 # Convoy Phone
-<img alt="Logo" src="graphics/icon.webp" width="120" />
 
-Convoy Phone is a dialer app based on Fossify Phone, being adapted for Convoy-specific requirements.
+Minimal standalone Android phone app scaffold.
 
-<div align="center">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" width="30%">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" width="30%">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" width="30%">
-</div>
+Current scope:
+- dial pad
+- contacts list and search
+- recent calls list
+- recordings list and playback
+- settings for dark mode, call recording, recording source, and recordings folder
+
+Implementation notes:
+- plain Java Android app
+- no external runtime dependencies in `app/build.gradle`
+- call recording is best-effort and depends on device and Android restrictions

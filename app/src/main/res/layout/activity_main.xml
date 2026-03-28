@@ -1,54 +1,37 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main_coordinator"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <org.fossify.commons.views.MySearchMenu
-        android:id="@+id/main_menu"
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/app_name" android:textSize="24sp" android:textStyle="bold" />
+    <EditText android:id="@+id/number_input" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/number_hint" android:inputType="phone" android:textSize="24sp" android:layout_marginTop="12dp" />
+
+    <GridLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:columnCount="3"
+        android:layout_marginTop="12dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/main_holder"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:scrollbars="none"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        <Button android:id="@+id/digit_1" android:text="1" />
+        <Button android:id="@+id/digit_2" android:text="2" />
+        <Button android:id="@+id/digit_3" android:text="3" />
+        <Button android:id="@+id/digit_4" android:text="4" />
+        <Button android:id="@+id/digit_5" android:text="5" />
+        <Button android:id="@+id/digit_6" android:text="6" />
+        <Button android:id="@+id/digit_7" android:text="7" />
+        <Button android:id="@+id/digit_8" android:text="8" />
+        <Button android:id="@+id/digit_9" android:text="9" />
+        <Button android:id="@+id/digit_star" android:text="*" />
+        <Button android:id="@+id/digit_0" android:text="0" />
+        <Button android:id="@+id/digit_hash" android:text="#" />
+    </GridLayout>
 
-        <org.fossify.commons.views.MyViewPager
-            android:id="@+id/view_pager"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/main_tabs_holder"
-            app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+        <Button android:id="@+id/call_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/call" />
+        <Button android:id="@+id/clear_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/clear" />
+    </LinearLayout>
 
-        <org.fossify.commons.views.MyFloatingActionButton
-            android:id="@+id/main_dialpad_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="@dimen/activity_margin"
-            android:layout_marginBottom="@dimen/activity_margin"
-            android:contentDescription="@string/dialpad"
-            android:elevation="0dp"
-            android:padding="@dimen/normal_margin"
-            android:src="@drawable/ic_dialpad_vector"
-            app:backgroundTint="@color/color_primary"
-            app:layout_constraintBottom_toTopOf="@+id/main_tabs_holder"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:rippleColor="@color/pressed_item_foreground" />
-
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/main_tabs_holder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:tabIndicator="@null"
-            app:tabMinWidth="96dp"
-            app:tabRippleColor="@null" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+    <include layout="@layout/bottom_nav" />
+</LinearLayout>
