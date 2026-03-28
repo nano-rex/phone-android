@@ -15,6 +15,7 @@ import org.convoy.phone.util.AppSettings;
 import org.convoy.phone.util.BaseActivity;
 import org.convoy.phone.util.DialerIntegration;
 import org.convoy.phone.util.BlockedNumberStore;
+import org.convoy.phone.util.StorageUtil;
 
 public class SettingsActivity extends BaseActivity {
     private static final int REQ_FOLDER = 4;
@@ -54,6 +55,10 @@ public class SettingsActivity extends BaseActivity {
                 checkedId == R.id.source_device ? AppSettings.SOURCE_DEVICE : AppSettings.SOURCE_ENVIRONMENT));
 
         findViewById(R.id.choose_folder_button).setOnClickListener(v -> openFolderPicker());
+        findViewById(R.id.write_test_file_button).setOnClickListener(v -> {
+            boolean ok = StorageUtil.writeMarkerFile(this, "probe.txt", "folder write test");
+            Toast.makeText(this, ok ? R.string.test_file_written : R.string.test_file_failed, Toast.LENGTH_SHORT).show();
+        });
         findViewById(R.id.request_default_dialer_button).setOnClickListener(v -> {
             boolean launched = DialerIntegration.requestDefaultDialer(this);
             if (!launched) {

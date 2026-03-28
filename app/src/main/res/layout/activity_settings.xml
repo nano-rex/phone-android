@@ -30,6 +30,7 @@
                 <RadioButton android:id="@+id/source_device" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/source_device" />
             </RadioGroup>
             <Button android:id="@+id/choose_folder_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/open_folder_picker" android:layout_marginTop="12dp" />
+            <Button android:id="@+id/write_test_file_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/write_test_file" android:layout_marginTop="8dp" />
             <TextView android:id="@+id/folder_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" />
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/recording_note" android:layout_marginTop="8dp" />
         </LinearLayout>

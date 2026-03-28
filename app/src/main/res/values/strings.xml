@@ -22,6 +22,7 @@
     <string name="source_device">Device voice path</string>
     <string name="dark_mode">Dark mode</string>
     <string name="open_folder_picker">Pick recordings folder</string>
+    <string name="write_test_file">Write test file</string>
     <string name="folder_not_set">Folder not set</string>
     <string name="folder_set">Folder configured</string>
     <string name="recording_note">Device voice path is best-effort only and may be blocked by the phone or Android build. Environment mic records the surroundings instead.</string>
@@ -33,6 +34,8 @@
     <string name="recording_service_active">Recording call audio</string>
     <string name="recording_start_failed">Could not start call recording</string>
     <string name="recording_save_failed">Could not save call recording</string>
+    <string name="test_file_written">Test file written</string>
+    <string name="test_file_failed">Could not write test file</string>
     <string name="default_dialer">Default dialer</string>
     <string name="request_default_dialer">Set as default dialer</string>
     <string name="default_dialer_enabled">Convoy Phone is the default dialer</string>
