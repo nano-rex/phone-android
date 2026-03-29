@@ -2,13 +2,18 @@ package org.convoy.phone.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.CallLog;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -19,15 +24,23 @@ import org.convoy.phone.util.BlockedNumberStore;
 import org.convoy.phone.util.ImportedCallHistoryStore;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class RecentsActivity extends BaseActivity {
     private static final int REQ_CALL_LOG = 3;
     private final List<RecentCallItem> items = new ArrayList<>();
+    private final List<RecentCallItem> allItems = new ArrayList<>();
     private ArrayAdapter<RecentCallItem> adapter;
+    private EditText searchView;
+    private Button fromDateButton;
+    private Button toDateButton;
+    private Long fromDateMillis;
+    private Long toDateMillis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +48,9 @@ public class RecentsActivity extends BaseActivity {
         setContentView(R.layout.activity_recents);
         bindBottomNav(R.id.tab_recents);
         ListView listView = findViewById(R.id.recents_list);
+        searchView = findViewById(R.id.search_recents);
+        fromDateButton = findViewById(R.id.from_date_button);
+        toDateButton = findViewById(R.id.to_date_button);
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener((parent, view, position, id) -> dialNumber(items.get(position).number));
@@ -42,6 +58,20 @@ public class RecentsActivity extends BaseActivity {
             showRecentActions(items.get(position));
             return true;
         });
+        searchView.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void afterTextChanged(Editable s) { applyFilters(); }
+        });
+        fromDateButton.setOnClickListener(v -> pickDate(true));
+        toDateButton.setOnClickListener(v -> pickDate(false));
+        findViewById(R.id.clear_date_filter_button).setOnClickListener(v -> {
+            fromDateMillis = null;
+            toDateMillis = null;
+            updateDateButtons();
+            applyFilters();
+        });
+        updateDateButtons();
         loadRecents();
     }
 
@@ -49,6 +79,35 @@ public class RecentsActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         loadRecents();
+    }
+
+    private void pickDate(boolean from) {
+        Calendar calendar = Calendar.getInstance();
+        long base = from ? (fromDateMillis == null ? System.currentTimeMillis() : fromDateMillis) : (toDateMillis == null ? System.currentTimeMillis() : toDateMillis);
+        calendar.setTimeInMillis(base);
+        DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+            Calendar picked = Calendar.getInstance();
+            picked.set(Calendar.YEAR, year);
+            picked.set(Calendar.MONTH, month);
+            picked.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            picked.set(Calendar.HOUR_OF_DAY, from ? 0 : 23);
+            picked.set(Calendar.MINUTE, from ? 0 : 59);
+            picked.set(Calendar.SECOND, from ? 0 : 59);
+            picked.set(Calendar.MILLISECOND, from ? 0 : 999);
+            if (from) {
+                fromDateMillis = picked.getTimeInMillis();
+            } else {
+                toDateMillis = picked.getTimeInMillis();
+            }
+            updateDateButtons();
+            applyFilters();
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        dialog.show();
+    }
+
+    private void updateDateButtons() {
+        fromDateButton.setText(fromDateMillis == null ? getString(R.string.from_date) : DateFormat.format("yyyy-MM-dd", new Date(fromDateMillis)));
+        toDateButton.setText(toDateMillis == null ? getString(R.string.to_date) : DateFormat.format("yyyy-MM-dd", new Date(toDateMillis)));
     }
 
     private void showRecentActions(RecentCallItem item) {
@@ -75,7 +134,7 @@ public class RecentsActivity extends BaseActivity {
             requestPermissions(new String[]{Manifest.permission.READ_CALL_LOG}, REQ_CALL_LOG);
             return;
         }
-        items.clear();
+        allItems.clear();
         try (Cursor cursor = getContentResolver().query(
                 CallLog.Calls.CONTENT_URI,
                 new String[]{CallLog.Calls.CACHED_NAME, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.TYPE, CallLog.Calls.DURATION},
@@ -91,15 +150,36 @@ public class RecentsActivity extends BaseActivity {
                     int type = cursor.getInt(3);
                     long duration = cursor.getLong(4);
                     String detail = DateFormat.format("yyyy-MM-dd HH:mm", new Date(date)) + "  type=" + type + "  duration=" + duration + "s";
-                    items.add(new RecentCallItem(name == null || name.isEmpty() ? number : name, number, detail, date));
+                    allItems.add(new RecentCallItem(name == null || name.isEmpty() ? number : name, number, detail, date));
                     count++;
                 }
             }
         } catch (Exception e) {
             Toast.makeText(this, e.getMessage() == null ? getString(R.string.failed_to_load_recents) : e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-        items.addAll(ImportedCallHistoryStore.loadItems(this));
-        Collections.sort(items, Comparator.comparingLong(item -> -item.timestamp));
+        allItems.addAll(ImportedCallHistoryStore.loadItems(this));
+        Collections.sort(allItems, Comparator.comparingLong(item -> -item.timestamp));
+        applyFilters();
+    }
+
+    private void applyFilters() {
+        String query = searchView == null ? "" : String.valueOf(searchView.getText()).trim().toLowerCase(Locale.US);
+        items.clear();
+        for (RecentCallItem item : allItems) {
+            if (!query.isEmpty()) {
+                String haystack = (item.name + " " + item.number + " " + item.details).toLowerCase(Locale.US);
+                if (!haystack.contains(query)) {
+                    continue;
+                }
+            }
+            if (fromDateMillis != null && item.timestamp < fromDateMillis) {
+                continue;
+            }
+            if (toDateMillis != null && item.timestamp > toDateMillis) {
+                continue;
+            }
+            items.add(item);
+        }
         adapter.notifyDataSetChanged();
         findViewById(R.id.empty_recents).setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
     }

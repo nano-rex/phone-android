@@ -9,6 +9,10 @@
     <string name="clear">Clear</string>
     <string name="number_hint">Enter number</string>
     <string name="search_contacts">Search contacts</string>
+    <string name="search_recents">Search recents</string>
+    <string name="from_date">From date</string>
+    <string name="to_date">To date</string>
+    <string name="clear_date_filter">Clear date filter</string>
     <string name="new_contact">New Contact</string>
     <string name="copy_number">Copy Number</string>
     <string name="no_contacts">No contacts found</string>

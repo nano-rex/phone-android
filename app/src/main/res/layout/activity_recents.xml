@@ -5,6 +5,12 @@
     android:padding="16dp">
 
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/recents" android:textSize="24sp" android:textStyle="bold" />
+    <EditText android:id="@+id/search_recents" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/search_recents" android:layout_marginTop="12dp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+        <Button android:id="@+id/from_date_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/from_date" />
+        <Button android:id="@+id/to_date_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/to_date" android:layout_marginStart="8dp" />
+    </LinearLayout>
+    <Button android:id="@+id/clear_date_filter_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/clear_date_filter" android:layout_marginTop="8dp" />
     <TextView android:id="@+id/empty_recents" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/no_recents" android:visibility="gone" android:layout_marginTop="8dp" />
     <ListView android:id="@+id/recents_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp" />
     <include layout="@layout/bottom_nav" />
