@@ -8,7 +8,14 @@ public class ConvoyCallScreeningService extends CallScreeningService {
     public void onScreenCall(Call.Details callDetails) {
         String number = callDetails.getHandle() != null ? callDetails.getHandle().getSchemeSpecificPart() : "";
         CallResponse.Builder builder = new CallResponse.Builder();
-        if (BlockedNumberStore.isBlocked(this, number)) {
+        boolean shouldBlock = BlockedNumberStore.isBlocked(this, number);
+        if (!shouldBlock && AppSettings.isBlockHiddenCallers(this) && BlockedNumberStore.isHiddenNumber(number)) {
+            shouldBlock = true;
+        }
+        if (!shouldBlock && AppSettings.isBlockUnknownCallers(this) && !BlockedNumberStore.isHiddenNumber(number) && !BlockedNumberStore.isInContacts(this, number)) {
+            shouldBlock = true;
+        }
+        if (shouldBlock) {
             respondToCall(callDetails, builder.setDisallowCall(true).setRejectCall(true).setSkipCallLog(false).setSkipNotification(true).build());
         } else {
             respondToCall(callDetails, builder.setDisallowCall(false).setRejectCall(false).build());

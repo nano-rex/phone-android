@@ -15,10 +15,13 @@ import org.convoy.phone.util.AppSettings;
 import org.convoy.phone.util.BaseActivity;
 import org.convoy.phone.util.DialerIntegration;
 import org.convoy.phone.util.BlockedNumberStore;
+import org.convoy.phone.util.CallHistoryTransfer;
 
 public class SettingsActivity extends BaseActivity {
     private static final int REQ_FOLDER = 4;
     private static final int REQ_AUDIO = 5;
+    private static final int REQ_EXPORT_HISTORY = 6;
+    private static final int REQ_IMPORT_HISTORY = 7;
     private TextView folderStatus;
     private TextView defaultDialerStatus;
     private TextView blocklistStatus;
@@ -36,6 +39,14 @@ public class SettingsActivity extends BaseActivity {
         compatibilityStatus = findViewById(R.id.compatibility_status);
 
         Switch darkMode = findViewById(R.id.dark_mode_switch);
+        Switch blockUnknown = findViewById(R.id.block_unknown_switch);
+        blockUnknown.setChecked(AppSettings.isBlockUnknownCallers(this));
+        blockUnknown.setOnCheckedChangeListener((buttonView, isChecked) -> AppSettings.setBlockUnknownCallers(this, isChecked));
+
+        Switch blockHidden = findViewById(R.id.block_hidden_switch);
+        blockHidden.setChecked(AppSettings.isBlockHiddenCallers(this));
+        blockHidden.setOnCheckedChangeListener((buttonView, isChecked) -> AppSettings.setBlockHiddenCallers(this, isChecked));
+
         darkMode.setChecked(AppSettings.isDarkMode(this));
         darkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
             AppSettings.setDarkMode(this, isChecked);
@@ -75,6 +86,8 @@ public class SettingsActivity extends BaseActivity {
             Toast.makeText(this, R.string.compatibility_test_armed, Toast.LENGTH_LONG).show();
         });
 
+        findViewById(R.id.export_history_button).setOnClickListener(v -> exportCallHistory());
+        findViewById(R.id.import_history_button).setOnClickListener(v -> importCallHistory());
         findViewById(R.id.choose_folder_button).setOnClickListener(v -> openFolderPicker());
         findViewById(R.id.request_default_dialer_button).setOnClickListener(v -> {
             boolean launched = DialerIntegration.requestDefaultDialer(this);
@@ -96,6 +109,23 @@ public class SettingsActivity extends BaseActivity {
         updateCompatibilityStatus();
     }
 
+    private void exportCallHistory() {
+        if (checkSelfPermission(Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_CALL_LOG}, REQ_EXPORT_HISTORY);
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.setType("text/csv");
+        intent.putExtra(Intent.EXTRA_TITLE, "convoy_call_history.csv");
+        startActivityForResult(intent, REQ_EXPORT_HISTORY);
+    }
+
+    private void importCallHistory() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("text/*");
+        startActivityForResult(intent, REQ_IMPORT_HISTORY);
+    }
+
     private void openFolderPicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
@@ -110,6 +140,14 @@ public class SettingsActivity extends BaseActivity {
             getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             AppSettings.setRecordingsTreeUri(this, uri);
             updateFolderStatus();
+        }
+        if (requestCode == REQ_EXPORT_HISTORY && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            boolean ok = CallHistoryTransfer.exportDeviceCallLog(this, data.getData());
+            Toast.makeText(this, ok ? R.string.call_history_exported : R.string.call_history_export_failed, Toast.LENGTH_SHORT).show();
+        }
+        if (requestCode == REQ_IMPORT_HISTORY && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            boolean ok = CallHistoryTransfer.importCallLog(this, data.getData());
+            Toast.makeText(this, ok ? R.string.call_history_imported : R.string.call_history_import_failed, Toast.LENGTH_SHORT).show();
         }
         if (requestCode == DialerIntegration.REQ_DEFAULT_DIALER) {
             updateDialerStatus();
@@ -136,6 +174,12 @@ public class SettingsActivity extends BaseActivity {
                 }
             }
             updateCompatibilityStatus();
+        } else if (requestCode == REQ_EXPORT_HISTORY) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                exportCallHistory();
+            } else {
+                Toast.makeText(this, R.string.permission_required, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

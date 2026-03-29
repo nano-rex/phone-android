@@ -3,8 +3,11 @@ package org.convoy.phone.util;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.BlockedNumberContract;
+import android.provider.ContactsContract;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,6 +39,24 @@ public final class BlockedNumberStore {
         try {
             return BlockedNumberContract.canCurrentUserBlockNumbers(context);
         } catch (SecurityException e) {
+            return false;
+        }
+    }
+
+    public static boolean isHiddenNumber(String number) {
+        String normalized = normalize(number);
+        return normalized.isEmpty() || "unknown".equalsIgnoreCase(normalized) || "private".equalsIgnoreCase(normalized) || "restricted".equalsIgnoreCase(normalized);
+    }
+
+    public static boolean isInContacts(Context context, String number) {
+        String normalized = normalize(number);
+        if (normalized.isEmpty()) {
+            return false;
+        }
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(normalized));
+        try (Cursor cursor = context.getContentResolver().query(uri, new String[]{ContactsContract.PhoneLookup._ID}, null, null, null)) {
+            return cursor != null && cursor.moveToFirst();
+        } catch (Exception e) {
             return false;
         }
     }

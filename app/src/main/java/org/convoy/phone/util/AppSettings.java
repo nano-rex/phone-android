@@ -13,6 +13,8 @@ public final class AppSettings {
     private static final String KEY_RECORDINGS_TREE_URI = "recordings_tree_uri";
     private static final String KEY_COMPAT_TEST_PENDING = "compat_test_pending";
     private static final String KEY_BEST_RECORDER_SOURCE = "best_recorder_source";
+    private static final String KEY_BLOCK_UNKNOWN_CALLERS = "block_unknown_callers";
+    private static final String KEY_BLOCK_HIDDEN_CALLERS = "block_hidden_callers";
 
     public static final String SOURCE_ENVIRONMENT = "environment";
     public static final String SOURCE_DEVICE = "device";
@@ -111,6 +113,22 @@ public final class AppSettings {
         return new int[]{
                 MediaRecorder.AudioSource.MIC
         };
+    }
+
+    public static boolean isBlockUnknownCallers(Context context) {
+        return prefs(context).getBoolean(KEY_BLOCK_UNKNOWN_CALLERS, false);
+    }
+
+    public static void setBlockUnknownCallers(Context context, boolean value) {
+        prefs(context).edit().putBoolean(KEY_BLOCK_UNKNOWN_CALLERS, value).commit();
+    }
+
+    public static boolean isBlockHiddenCallers(Context context) {
+        return prefs(context).getBoolean(KEY_BLOCK_HIDDEN_CALLERS, false);
+    }
+
+    public static void setBlockHiddenCallers(Context context, boolean value) {
+        prefs(context).edit().putBoolean(KEY_BLOCK_HIDDEN_CALLERS, value).commit();
     }
 
     public static String describeRecorderSource(int source) {

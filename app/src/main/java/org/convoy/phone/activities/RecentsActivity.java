@@ -16,8 +16,11 @@ import org.convoy.phone.R;
 import org.convoy.phone.model.RecentCallItem;
 import org.convoy.phone.util.BaseActivity;
 import org.convoy.phone.util.BlockedNumberStore;
+import org.convoy.phone.util.ImportedCallHistoryStore;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -88,13 +91,15 @@ public class RecentsActivity extends BaseActivity {
                     int type = cursor.getInt(3);
                     long duration = cursor.getLong(4);
                     String detail = DateFormat.format("yyyy-MM-dd HH:mm", new Date(date)) + "  type=" + type + "  duration=" + duration + "s";
-                    items.add(new RecentCallItem(name == null || name.isEmpty() ? number : name, number, detail));
+                    items.add(new RecentCallItem(name == null || name.isEmpty() ? number : name, number, detail, date));
                     count++;
                 }
             }
         } catch (Exception e) {
             Toast.makeText(this, e.getMessage() == null ? getString(R.string.failed_to_load_recents) : e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+        items.addAll(ImportedCallHistoryStore.loadItems(this));
+        Collections.sort(items, Comparator.comparingLong(item -> -item.timestamp));
         adapter.notifyDataSetChanged();
         findViewById(R.id.empty_recents).setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
     }
