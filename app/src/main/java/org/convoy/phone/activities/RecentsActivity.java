@@ -3,8 +3,11 @@ package org.convoy.phone.activities;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
+import android.provider.ContactsContract;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.text.Editable;
@@ -18,10 +21,13 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import org.convoy.phone.R;
+import org.convoy.phone.adapters.RecentCallAdapter;
 import org.convoy.phone.model.RecentCallItem;
 import org.convoy.phone.util.BaseActivity;
 import org.convoy.phone.util.BlockedNumberStore;
+import org.convoy.phone.util.ContactAnalysisUtil;
 import org.convoy.phone.util.ImportedCallHistoryStore;
+import org.convoy.phone.util.TelephonyInfoCollector;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -51,9 +57,9 @@ public class RecentsActivity extends BaseActivity {
         searchView = findViewById(R.id.search_recents);
         fromDateButton = findViewById(R.id.from_date_button);
         toDateButton = findViewById(R.id.to_date_button);
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
+        adapter = new RecentCallAdapter(this, items);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener((parent, view, position, id) -> dialNumber(items.get(position).number));
+        listView.setOnItemClickListener((parent, view, position, id) -> showRecentTapActions(items.get(position)));
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
             showRecentActions(items.get(position));
             return true;
@@ -126,6 +132,64 @@ public class RecentsActivity extends BaseActivity {
                         Toast.makeText(this, blocked ? R.string.unblock_number : R.string.block_number, Toast.LENGTH_SHORT).show();
                     }
                 })
+                .show();
+    }
+
+    private void showRecentTapActions(RecentCallItem item) {
+        String[] actions = new String[]{
+                getString(R.string.call),
+                getString(R.string.view_details),
+                getString(R.string.add_to_contacts),
+                getString(R.string.contact_analysis)
+        };
+        new AlertDialog.Builder(this)
+                .setTitle(item.name)
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) {
+                        dialNumber(item.number);
+                    } else if (which == 1) {
+                        showRecentDetails(item);
+                    } else if (which == 2) {
+                        addRecentNumberToContacts(item);
+                    } else {
+                        showRecentAnalysis(item);
+                    }
+                })
+                .show();
+    }
+
+    private void showRecentDetails(RecentCallItem item) {
+        StringBuilder message = new StringBuilder()
+                .append(item.number)
+                .append("\n\n")
+                .append(item.details);
+        String telephonyInfo = TelephonyInfoCollector.collect(this);
+        if (!telephonyInfo.isEmpty()) {
+            message.append("\n\n")
+                    .append(getString(R.string.current_network_info))
+                    .append("\n")
+                    .append(telephonyInfo);
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(item.name)
+                .setMessage(message.toString())
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    private void addRecentNumberToContacts(RecentCallItem item) {
+        Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
+        intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
+        intent.putExtra(ContactsContract.Intents.Insert.NAME, item.name.equals(item.number) ? "" : item.name);
+        intent.putExtra(ContactsContract.Intents.Insert.PHONE, item.number);
+        startActivity(intent);
+    }
+
+    private void showRecentAnalysis(RecentCallItem item) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.contact_analysis)
+                .setMessage(ContactAnalysisUtil.buildAnalysis(this, item.name, item.number))
+                .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
 

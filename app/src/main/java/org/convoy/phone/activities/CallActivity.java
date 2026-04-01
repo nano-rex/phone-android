@@ -1,5 +1,7 @@
 package org.convoy.phone.activities;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,11 +13,14 @@ import android.widget.Toast;
 import org.convoy.phone.R;
 import org.convoy.phone.util.CallController;
 import org.convoy.phone.util.BaseActivity;
+import org.convoy.phone.util.TelephonyInfoCollector;
 
 public class CallActivity extends BaseActivity {
+    private static final int REQ_TELEPHONY_INFO = 8;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private TextView nameView;
     private TextView stateView;
+    private TextView telephonyInfoView;
     private Button answerButton;
     private Button declineButton;
     private Button endButton;
@@ -38,11 +43,13 @@ public class CallActivity extends BaseActivity {
         setContentView(R.layout.activity_call);
         nameView = findViewById(R.id.call_name);
         stateView = findViewById(R.id.call_state);
+        telephonyInfoView = findViewById(R.id.telephony_info_text);
         answerButton = findViewById(R.id.answer_button);
         declineButton = findViewById(R.id.decline_button);
         endButton = findViewById(R.id.end_button);
         muteButton = findViewById(R.id.mute_button);
         speakerButton = findViewById(R.id.speaker_button);
+        requestTelephonyPermissionsIfNeeded();
 
         answerButton.setOnClickListener(v -> {
             Call call = CallController.getCurrentCall();
@@ -117,6 +124,7 @@ public class CallActivity extends BaseActivity {
         speakerButton.setText(CallController.isSpeakerOn() ? R.string.speaker_off : R.string.speaker);
         muteButton.setEnabled(state != Call.STATE_DISCONNECTED);
         speakerButton.setEnabled(state != Call.STATE_DISCONNECTED);
+        telephonyInfoView.setText(TelephonyInfoCollector.collect(this));
     }
 
     private String stateLabel(int state) {
@@ -128,6 +136,28 @@ public class CallActivity extends BaseActivity {
             case Call.STATE_HOLDING: return getString(R.string.call_state_holding);
             case Call.STATE_DISCONNECTED: return getString(R.string.call_state_disconnected);
             default: return getString(R.string.call_state_unknown);
+        }
+    }
+
+    private void requestTelephonyPermissionsIfNeeded() {
+        boolean needPhoneState = checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED;
+        boolean needLocation = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED;
+        if (needPhoneState || needLocation) {
+            if (needPhoneState && needLocation) {
+                requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION}, REQ_TELEPHONY_INFO);
+            } else if (needPhoneState) {
+                requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQ_TELEPHONY_INFO);
+            } else {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQ_TELEPHONY_INFO);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_TELEPHONY_INFO) {
+            refreshUi();
         }
     }
 }

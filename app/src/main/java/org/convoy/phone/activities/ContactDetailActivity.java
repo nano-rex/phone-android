@@ -12,6 +12,7 @@ import android.widget.Toast;
 import org.convoy.phone.R;
 import org.convoy.phone.util.BaseActivity;
 import org.convoy.phone.util.BlockedNumberStore;
+import org.convoy.phone.util.ContactAnalysisUtil;
 
 public class ContactDetailActivity extends BaseActivity {
     public static final String EXTRA_CONTACT_ID = "contact_id";
@@ -59,6 +60,13 @@ public class ContactDetailActivity extends BaseActivity {
             intent.putExtra("finishActivityOnSaveCompleted", true);
             startActivity(intent);
         });
+        findViewById(R.id.contact_detail_analyze).setOnClickListener(v ->
+                new android.app.AlertDialog.Builder(this)
+                        .setTitle(R.string.contact_analysis)
+                        .setMessage(ContactAnalysisUtil.buildAnalysis(this, name, number))
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show()
+        );
         favoriteButton.setOnClickListener(v -> toggleFavorite());
         blockButton.setOnClickListener(v -> toggleBlocked());
 

@@ -40,6 +40,13 @@
         android:text="@string/copy_number" />
 
     <Button
+        android:id="@+id/contact_detail_analyze"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/contact_analysis" />
+
+    <Button
         android:id="@+id/contact_detail_favorite"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

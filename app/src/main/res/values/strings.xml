@@ -15,6 +15,11 @@
     <string name="clear_date_filter">Clear date filter</string>
     <string name="new_contact">New Contact</string>
     <string name="copy_number">Copy Number</string>
+    <string name="view_details">View details</string>
+    <string name="add_to_contacts">Add to contacts</string>
+    <string name="current_network_info">Current network info (best effort)</string>
+    <string name="contact_analysis">Analyze source consistency</string>
+    <string name="analysis_limit_note">This is a local consistency check only. It does not prove the upstream telecom route or guarantee that a call source is authentic.</string>
     <string name="no_contacts">No contacts found</string>
     <string name="no_recents">No recent calls found</string>
     <string name="no_recordings">No recordings found</string>
@@ -74,6 +79,8 @@
     <string name="call_state_holding">On hold</string>
     <string name="call_state_disconnected">Disconnected</string>
     <string name="call_state_unknown">Call</string>
+    <string name="incoming_call_security_info">Incoming call security info</string>
+    <string name="telephony_info_unavailable">Telephony details unavailable</string>
     <string name="number_is_blocked">Number is blocked</string>
     <string name="audio_route_unavailable">Audio controls unavailable</string>
     <string name="speaker_off">Speaker off</string>
